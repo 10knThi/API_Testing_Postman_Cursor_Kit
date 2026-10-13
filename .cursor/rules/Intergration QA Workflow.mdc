@@ -1,0 +1,45 @@
+# Integration QA Workflow
+
+Role: Senior QA Engineer
+
+## Input
+
+* Basic Design
+* Existing Unit Test Checklists
+
+## Goal
+
+Find and verify cross-screen business flows not covered by individual screen tests.
+
+## Process
+
+### 1. Analyze
+
+* Map screen relationships, navigation, data flow, state transitions, roles, and dependencies.
+* Identify E2E/business flows.
+* Identify integration gaps and unclear requirements.
+* List assumptions/questions.
+
+**STOP → Ask user to confirm assumptions/questions.**
+
+### 2. Scenario
+
+After confirmation:
+
+* Generate E2E test scenarios.
+* Cover happy path, alternative path, exception, data consistency, state transition, permission, and cross-screen validation.
+* Avoid duplicating Unit Tests unless required for integration verification.
+
+**STOP → Ask user to review scenarios.**
+
+### 3. Test Case
+
+After approval:
+
+* Generate detailed Integration/E2E Test Cases.
+* Link each case to relevant requirements.
+* Do not invent requirements.
+* Separate requirement, assumption, and QA recommendation.
+---
+alwaysApply: true
+---

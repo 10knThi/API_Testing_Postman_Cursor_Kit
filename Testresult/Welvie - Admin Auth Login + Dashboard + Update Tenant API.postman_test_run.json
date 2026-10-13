@@ -1,0 +1,3047 @@
+{
+	"id": "48d6181f-4526-4907-8c3e-123356cde9cd",
+	"name": "Welvie - Admin Auth Login + Dashboard + Update Tenant API",
+	"timestamp": "2026-10-01T07:40:13.348Z",
+	"collection_id": "58510159-1155d473-0913-48f5-b381-7c873ee4a0da",
+	"folder_id": 0,
+	"environment_id": "58510159-904a1284-aa6b-4c0e-b97e-b1e9e1d76a1d",
+	"totalPass": 189,
+	"delay": 0,
+	"persist": true,
+	"status": "finished",
+	"startedAt": "2026-10-01T07:39:48.928Z",
+	"totalFail": 18,
+	"results": [
+		{
+			"id": "8ba6b2fe-dc7a-40a7-831d-45ffde5fae3e",
+			"name": "WELVIE_ADMINLOGIN_TC_001 - Đăng nhập thành công bằng admin hợp lệ",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/auth/login",
+			"time": 1108,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200": true,
+				"Content-Type là application/json": true,
+				"Có đủ key bắt buộc: message, errors, data, meta": true,
+				"message là string, errors là null, meta là object": true,
+				"data có đủ 4 field bắt buộc": true,
+				"Kiểu dữ liệu của data đúng doc": true,
+				"Response không chứa mật khẩu đã gửi": true
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Content-Type là application/json": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Có đủ key bắt buộc: message, errors, data, meta": {
+					"pass": 1,
+					"fail": 0
+				},
+				"message là string, errors là null, meta là object": {
+					"pass": 1,
+					"fail": 0
+				},
+				"data có đủ 4 field bắt buộc": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Kiểu dữ liệu của data đúng doc": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Response không chứa mật khẩu đã gửi": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				1108
+			],
+			"allTests": [
+				{
+					"Status 200": true,
+					"Content-Type là application/json": true,
+					"Có đủ key bắt buộc: message, errors, data, meta": true,
+					"message là string, errors là null, meta là object": true,
+					"data có đủ 4 field bắt buộc": true,
+					"Kiểu dữ liệu của data đúng doc": true,
+					"Response không chứa mật khẩu đã gửi": true
+				}
+			]
+		},
+		{
+			"id": "a6f7019c-017e-4f81-9918-f9e0c97f6b3f",
+			"name": "WELVIE_ADMINLOGIN_TC_023 - Viewer login thành công và lưu viewer_access_token",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/auth/login",
+			"time": 582,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200": true,
+				"errors null; data có access_token dạng string": true
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"errors null; data có access_token dạng string": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				582
+			],
+			"allTests": [
+				{
+					"Status 200": true,
+					"errors null; data có access_token dạng string": true
+				}
+			]
+		},
+		{
+			"id": "1792d524-47bd-4f18-b5bd-aa623708afa4",
+			"name": "WELVIE_ADMINLOGIN_TC_002 - Token vừa cấp gọi được GET /me",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/auth/me",
+			"time": 197,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200": true,
+				"Có đủ key bắt buộc, errors null, data là object": true
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Có đủ key bắt buộc, errors null, data là object": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				197
+			],
+			"allTests": [
+				{
+					"Status 200": true,
+					"Có đủ key bắt buộc, errors null, data là object": true
+				}
+			]
+		},
+		{
+			"id": "ec002924-4386-40bf-8865-279cebfdbf40",
+			"name": "WELVIE_ADMINLOGIN_TC_003 - Gọi GET /me không có token bị từ chối",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/auth/me",
+			"time": 119,
+			"responseCode": {
+				"code": 401,
+				"name": "Unauthorized"
+			},
+			"tests": {
+				"Status 401": true,
+				"Cấu trúc AuthenticationException: message string, errors null, data null, meta object": true
+			},
+			"testPassFailCounts": {
+				"Status 401": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Cấu trúc AuthenticationException: message string, errors null, data null, meta object": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				119
+			],
+			"allTests": [
+				{
+					"Status 401": true,
+					"Cấu trúc AuthenticationException: message string, errors null, data null, meta object": true
+				}
+			]
+		},
+		{
+			"id": "d0b98a3e-e4cc-43d4-b709-c578bba2b50c",
+			"name": "WELVIE_ADMINLOGIN_TC_004 - Đăng nhập lần 2 cùng account vẫn thành công",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/auth/login",
+			"time": 649,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200": true,
+				"data có access_token dạng string": true
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"data có access_token dạng string": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				649
+			],
+			"allTests": [
+				{
+					"Status 200": true,
+					"data có access_token dạng string": true
+				}
+			]
+		},
+		{
+			"id": "1fb7685d-db37-4fa0-a0b1-8e4b2e171848",
+			"name": "WELVIE_ADMINLOGIN_TC_005 - Token của lần đăng nhập thứ 2 gọi được GET /me",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/auth/me",
+			"time": 398,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200": true,
+				"data là object": true
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"data là object": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				398
+			],
+			"allTests": [
+				{
+					"Status 200": true,
+					"data là object": true
+				}
+			]
+		},
+		{
+			"id": "873791db-5667-41e2-a45e-93774ad2ad76",
+			"name": "WELVIE_ADMINLOGIN_TC_006 - Thiếu field email",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/auth/login",
+			"time": 150,
+			"responseCode": {
+				"code": 422,
+				"name": "Unprocessable Entity (WebDAV) (RFC 4918)"
+			},
+			"tests": {
+				"Status 422": true,
+				"Cấu trúc ValidationException: message string, errors object, data null, meta object": true,
+				"errors.email là mảng message dạng string": true
+			},
+			"testPassFailCounts": {
+				"Status 422": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Cấu trúc ValidationException: message string, errors object, data null, meta object": {
+					"pass": 1,
+					"fail": 0
+				},
+				"errors.email là mảng message dạng string": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				150
+			],
+			"allTests": [
+				{
+					"Status 422": true,
+					"Cấu trúc ValidationException: message string, errors object, data null, meta object": true,
+					"errors.email là mảng message dạng string": true
+				}
+			]
+		},
+		{
+			"id": "1c671c80-38bf-460e-9f20-58ab09db4891",
+			"name": "WELVIE_ADMINLOGIN_TC_007 - Thiếu field password",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/auth/login",
+			"time": 124,
+			"responseCode": {
+				"code": 422,
+				"name": "Unprocessable Entity (WebDAV) (RFC 4918)"
+			},
+			"tests": {
+				"Status 422": true,
+				"Cấu trúc ValidationException: message string, errors object, data null, meta object": true,
+				"errors.password là mảng message dạng string": true
+			},
+			"testPassFailCounts": {
+				"Status 422": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Cấu trúc ValidationException: message string, errors object, data null, meta object": {
+					"pass": 1,
+					"fail": 0
+				},
+				"errors.password là mảng message dạng string": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				124
+			],
+			"allTests": [
+				{
+					"Status 422": true,
+					"Cấu trúc ValidationException: message string, errors object, data null, meta object": true,
+					"errors.password là mảng message dạng string": true
+				}
+			]
+		},
+		{
+			"id": "4602b6ed-a9d8-4278-b712-2f34395fa0f3",
+			"name": "WELVIE_ADMINLOGIN_TC_008 - Body rỗng thiếu cả email và password",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/auth/login",
+			"time": 150,
+			"responseCode": {
+				"code": 422,
+				"name": "Unprocessable Entity (WebDAV) (RFC 4918)"
+			},
+			"tests": {
+				"Status 422": true,
+				"Cấu trúc ValidationException: message string, errors object, data null, meta object": true,
+				"errors báo lỗi cho cả email và password": true
+			},
+			"testPassFailCounts": {
+				"Status 422": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Cấu trúc ValidationException: message string, errors object, data null, meta object": {
+					"pass": 1,
+					"fail": 0
+				},
+				"errors báo lỗi cho cả email và password": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				150
+			],
+			"allTests": [
+				{
+					"Status 422": true,
+					"Cấu trúc ValidationException: message string, errors object, data null, meta object": true,
+					"errors báo lỗi cho cả email và password": true
+				}
+			]
+		},
+		{
+			"id": "70a9415a-f20b-4976-a6fd-1279092e5a70",
+			"name": "WELVIE_ADMINLOGIN_TC_009 - Email sai định dạng (thiếu @)",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/auth/login",
+			"time": 123,
+			"responseCode": {
+				"code": 422,
+				"name": "Unprocessable Entity (WebDAV) (RFC 4918)"
+			},
+			"tests": {
+				"Status 422": true,
+				"Cấu trúc ValidationException: message string, errors object, data null, meta object": true,
+				"errors.email là mảng message dạng string": true
+			},
+			"testPassFailCounts": {
+				"Status 422": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Cấu trúc ValidationException: message string, errors object, data null, meta object": {
+					"pass": 1,
+					"fail": 0
+				},
+				"errors.email là mảng message dạng string": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				123
+			],
+			"allTests": [
+				{
+					"Status 422": true,
+					"Cấu trúc ValidationException: message string, errors object, data null, meta object": true,
+					"errors.email là mảng message dạng string": true
+				}
+			]
+		},
+		{
+			"id": "19e6e740-5a9a-4232-a741-b7dfda3eb02d",
+			"name": "WELVIE_ADMINLOGIN_TC_010 - Email là chuỗi rỗng",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/auth/login",
+			"time": 170,
+			"responseCode": {
+				"code": 422,
+				"name": "Unprocessable Entity (WebDAV) (RFC 4918)"
+			},
+			"tests": {
+				"Status 422": true,
+				"Cấu trúc ValidationException: message string, errors object, data null, meta object": true,
+				"errors.email là mảng message dạng string": true
+			},
+			"testPassFailCounts": {
+				"Status 422": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Cấu trúc ValidationException: message string, errors object, data null, meta object": {
+					"pass": 1,
+					"fail": 0
+				},
+				"errors.email là mảng message dạng string": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				170
+			],
+			"allTests": [
+				{
+					"Status 422": true,
+					"Cấu trúc ValidationException: message string, errors object, data null, meta object": true,
+					"errors.email là mảng message dạng string": true
+				}
+			]
+		},
+		{
+			"id": "9cad34fd-7889-4bc4-bc43-8f5d58db4cc5",
+			"name": "WELVIE_ADMINLOGIN_TC_011 - Password là chuỗi rỗng",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/auth/login",
+			"time": 166,
+			"responseCode": {
+				"code": 422,
+				"name": "Unprocessable Entity (WebDAV) (RFC 4918)"
+			},
+			"tests": {
+				"Status 422": true,
+				"Cấu trúc ValidationException: message string, errors object, data null, meta object": true,
+				"errors.password là mảng message dạng string": true
+			},
+			"testPassFailCounts": {
+				"Status 422": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Cấu trúc ValidationException: message string, errors object, data null, meta object": {
+					"pass": 1,
+					"fail": 0
+				},
+				"errors.password là mảng message dạng string": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				166
+			],
+			"allTests": [
+				{
+					"Status 422": true,
+					"Cấu trúc ValidationException: message string, errors object, data null, meta object": true,
+					"errors.password là mảng message dạng string": true
+				}
+			]
+		},
+		{
+			"id": "daab9ce5-a24d-4f4a-85ce-69534da62aac",
+			"name": "WELVIE_ADMINLOGIN_TC_012 - Email gửi kiểu số thay vì string",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/auth/login",
+			"time": 198,
+			"responseCode": {
+				"code": 422,
+				"name": "Unprocessable Entity (WebDAV) (RFC 4918)"
+			},
+			"tests": {
+				"Status 422": true,
+				"Cấu trúc ValidationException: message string, errors object, data null, meta object": true,
+				"errors.email là mảng message dạng string": true
+			},
+			"testPassFailCounts": {
+				"Status 422": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Cấu trúc ValidationException: message string, errors object, data null, meta object": {
+					"pass": 1,
+					"fail": 0
+				},
+				"errors.email là mảng message dạng string": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				198
+			],
+			"allTests": [
+				{
+					"Status 422": true,
+					"Cấu trúc ValidationException: message string, errors object, data null, meta object": true,
+					"errors.email là mảng message dạng string": true
+				}
+			]
+		},
+		{
+			"id": "ee146e28-ba50-425b-8ecf-bd581b251721",
+			"name": "WELVIE_ADMINLOGIN_TC_013 - Password gửi kiểu số thay vì string",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/auth/login",
+			"time": 706,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status 422": false,
+				"Cấu trúc ValidationException: message string, errors object, data null, meta object": false,
+				"errors.password là mảng message dạng string": false
+			},
+			"testPassFailCounts": {
+				"Status 422": {
+					"pass": 0,
+					"fail": 1
+				},
+				"Cấu trúc ValidationException: message string, errors object, data null, meta object": {
+					"pass": 0,
+					"fail": 1
+				},
+				"errors.password là mảng message dạng string": {
+					"pass": 0,
+					"fail": 1
+				}
+			},
+			"times": [
+				706
+			],
+			"allTests": [
+				{
+					"Status 422": false,
+					"Cấu trúc ValidationException: message string, errors object, data null, meta object": false,
+					"errors.password là mảng message dạng string": false
+				}
+			]
+		},
+		{
+			"id": "ea03bb6e-04aa-4c39-8dfc-94a977ddb9c0",
+			"name": "WELVIE_ADMINLOGIN_TC_024 - Email dạng chuỗi injection bị chặn ở validation",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/auth/login",
+			"time": 268,
+			"responseCode": {
+				"code": 422,
+				"name": "Unprocessable Entity (WebDAV) (RFC 4918)"
+			},
+			"tests": {
+				"Status 422": true,
+				"errors.email là mảng string; data null (không cấp token)": true
+			},
+			"testPassFailCounts": {
+				"Status 422": {
+					"pass": 1,
+					"fail": 0
+				},
+				"errors.email là mảng string; data null (không cấp token)": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				268
+			],
+			"allTests": [
+				{
+					"Status 422": true,
+					"errors.email là mảng string; data null (không cấp token)": true
+				}
+			]
+		},
+		{
+			"id": "3df018af-e2d4-4d33-8a7c-c046bfd8b202",
+			"name": "WELVIE_ADMINLOGIN_TC_014 - Password 7 ký tự (min - 1)",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/auth/login",
+			"time": 113,
+			"responseCode": {
+				"code": 422,
+				"name": "Unprocessable Entity (WebDAV) (RFC 4918)"
+			},
+			"tests": {
+				"Status 422": true,
+				"Cấu trúc ValidationException: message string, errors object, data null, meta object": true,
+				"errors.password là mảng message dạng string": true
+			},
+			"testPassFailCounts": {
+				"Status 422": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Cấu trúc ValidationException: message string, errors object, data null, meta object": {
+					"pass": 1,
+					"fail": 0
+				},
+				"errors.password là mảng message dạng string": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				113
+			],
+			"allTests": [
+				{
+					"Status 422": true,
+					"Cấu trúc ValidationException: message string, errors object, data null, meta object": true,
+					"errors.password là mảng message dạng string": true
+				}
+			]
+		},
+		{
+			"id": "135e0ed9-7bcd-48c5-b1c1-a7f30779f743",
+			"name": "WELVIE_ADMINLOGIN_TC_015 - Password 255 ký tự (max) qua validation, email không tồn tại",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/auth/login",
+			"time": 234,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Test data dài đúng 255 ký tự": true,
+				"Status 400 (qua validation, bị từ chối vì email không tồn tại)": true,
+				"message là string (U03: không assert nội dung)": true,
+				"Cấu trúc InputException: errors null, data null, meta object": true
+			},
+			"testPassFailCounts": {
+				"Test data dài đúng 255 ký tự": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status 400 (qua validation, bị từ chối vì email không tồn tại)": {
+					"pass": 1,
+					"fail": 0
+				},
+				"message là string (U03: không assert nội dung)": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Cấu trúc InputException: errors null, data null, meta object": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				234
+			],
+			"allTests": [
+				{
+					"Test data dài đúng 255 ký tự": true,
+					"Status 400 (qua validation, bị từ chối vì email không tồn tại)": true,
+					"message là string (U03: không assert nội dung)": true,
+					"Cấu trúc InputException: errors null, data null, meta object": true
+				}
+			]
+		},
+		{
+			"id": "41ec0769-0ec5-45d0-9a8e-a7a0aab3b9e3",
+			"name": "WELVIE_ADMINLOGIN_TC_016 - Password 256 ký tự (max + 1)",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/auth/login",
+			"time": 126,
+			"responseCode": {
+				"code": 422,
+				"name": "Unprocessable Entity (WebDAV) (RFC 4918)"
+			},
+			"tests": {
+				"Test data dài đúng 256 ký tự": true,
+				"Status 422": true,
+				"Cấu trúc ValidationException: message string, errors object, data null, meta object": true,
+				"errors.password là mảng message dạng string": true
+			},
+			"testPassFailCounts": {
+				"Test data dài đúng 256 ký tự": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status 422": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Cấu trúc ValidationException: message string, errors object, data null, meta object": {
+					"pass": 1,
+					"fail": 0
+				},
+				"errors.password là mảng message dạng string": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				126
+			],
+			"allTests": [
+				{
+					"Test data dài đúng 256 ký tự": true,
+					"Status 422": true,
+					"Cấu trúc ValidationException: message string, errors object, data null, meta object": true,
+					"errors.password là mảng message dạng string": true
+				}
+			]
+		},
+		{
+			"id": "98303725-9e9c-4c48-91a0-aa9709c61045",
+			"name": "WELVIE_ADMINLOGIN_TC_017 - Email 255 ký tự (max) qua validation, email không tồn tại",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/auth/login",
+			"time": 130,
+			"responseCode": {
+				"code": 422,
+				"name": "Unprocessable Entity (WebDAV) (RFC 4918)"
+			},
+			"tests": {
+				"Test data dài đúng 255 ký tự": true,
+				"Status 400 (qua validation, bị từ chối vì email không tồn tại)": false,
+				"message là string (U03: không assert nội dung)": true,
+				"Cấu trúc InputException: errors null, data null, meta object": false
+			},
+			"testPassFailCounts": {
+				"Test data dài đúng 255 ký tự": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status 400 (qua validation, bị từ chối vì email không tồn tại)": {
+					"pass": 0,
+					"fail": 1
+				},
+				"message là string (U03: không assert nội dung)": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Cấu trúc InputException: errors null, data null, meta object": {
+					"pass": 0,
+					"fail": 1
+				}
+			},
+			"times": [
+				130
+			],
+			"allTests": [
+				{
+					"Test data dài đúng 255 ký tự": true,
+					"Status 400 (qua validation, bị từ chối vì email không tồn tại)": false,
+					"message là string (U03: không assert nội dung)": true,
+					"Cấu trúc InputException: errors null, data null, meta object": false
+				}
+			]
+		},
+		{
+			"id": "c26320e8-49a8-4cf0-8980-ef65a748faa2",
+			"name": "WELVIE_ADMINLOGIN_TC_018 - Email 256 ký tự (max + 1)",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/auth/login",
+			"time": 120,
+			"responseCode": {
+				"code": 422,
+				"name": "Unprocessable Entity (WebDAV) (RFC 4918)"
+			},
+			"tests": {
+				"Test data dài đúng 256 ký tự": true,
+				"Status 422": true,
+				"Cấu trúc ValidationException: message string, errors object, data null, meta object": true,
+				"errors.email là mảng message dạng string": true
+			},
+			"testPassFailCounts": {
+				"Test data dài đúng 256 ký tự": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status 422": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Cấu trúc ValidationException: message string, errors object, data null, meta object": {
+					"pass": 1,
+					"fail": 0
+				},
+				"errors.email là mảng message dạng string": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				120
+			],
+			"allTests": [
+				{
+					"Test data dài đúng 256 ký tự": true,
+					"Status 422": true,
+					"Cấu trúc ValidationException: message string, errors object, data null, meta object": true,
+					"errors.email là mảng message dạng string": true
+				}
+			]
+		},
+		{
+			"id": "3ce41118-8cfa-4768-87ea-577e699622df",
+			"name": "WELVIE_ADMINLOGIN_TC_019 - Email đúng, mật khẩu sai",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/auth/login",
+			"time": 633,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status 400": true,
+				"message là string (U03: không assert nội dung)": true,
+				"Cấu trúc InputException: errors null, data null, meta object": true
+			},
+			"testPassFailCounts": {
+				"Status 400": {
+					"pass": 1,
+					"fail": 0
+				},
+				"message là string (U03: không assert nội dung)": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Cấu trúc InputException: errors null, data null, meta object": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				633
+			],
+			"allTests": [
+				{
+					"Status 400": true,
+					"message là string (U03: không assert nội dung)": true,
+					"Cấu trúc InputException: errors null, data null, meta object": true
+				}
+			]
+		},
+		{
+			"id": "d2a44d7e-52b4-45c4-a4ba-fdb659e38edf",
+			"name": "WELVIE_ADMINLOGIN_TC_020 - Email không tồn tại trong hệ thống",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/auth/login",
+			"time": 231,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status 400": true,
+				"message là string (U03: không assert nội dung)": true,
+				"Cấu trúc InputException: errors null, data null, meta object": true
+			},
+			"testPassFailCounts": {
+				"Status 400": {
+					"pass": 1,
+					"fail": 0
+				},
+				"message là string (U03: không assert nội dung)": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Cấu trúc InputException: errors null, data null, meta object": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				231
+			],
+			"allTests": [
+				{
+					"Status 400": true,
+					"message là string (U03: không assert nội dung)": true,
+					"Cấu trúc InputException: errors null, data null, meta object": true
+				}
+			]
+		},
+		{
+			"id": "8d21b8e9-b91e-4de9-8cde-f4c66408d197",
+			"name": "WELVIE_DASHBOARD_TC_001 - Không truyền fiscal_year → schema đầy đủ",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/dashboard",
+			"time": 368,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200": true,
+				"Envelope đủ message / errors / data / meta; errors null": true,
+				"data đủ fiscal_year / available_fiscal_years / summary / trends / monthly_details": true,
+				"fiscal_year là integer và nằm trong available_fiscal_years (U06)": true,
+				"summary đủ field và đúng kiểu": true,
+				"trends.monthly_contracts: mỗi phần tử đủ field integer": true,
+				"trends.monthly_staff: mỗi phần tử đủ field integer": true,
+				"monthly_details: mỗi phần tử đủ field integer": true,
+				"month ở cả 3 mảng nằm trong 1–12 và không trùng (U08)": true
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Envelope đủ message / errors / data / meta; errors null": {
+					"pass": 1,
+					"fail": 0
+				},
+				"data đủ fiscal_year / available_fiscal_years / summary / trends / monthly_details": {
+					"pass": 1,
+					"fail": 0
+				},
+				"fiscal_year là integer và nằm trong available_fiscal_years (U06)": {
+					"pass": 1,
+					"fail": 0
+				},
+				"summary đủ field và đúng kiểu": {
+					"pass": 1,
+					"fail": 0
+				},
+				"trends.monthly_contracts: mỗi phần tử đủ field integer": {
+					"pass": 1,
+					"fail": 0
+				},
+				"trends.monthly_staff: mỗi phần tử đủ field integer": {
+					"pass": 1,
+					"fail": 0
+				},
+				"monthly_details: mỗi phần tử đủ field integer": {
+					"pass": 1,
+					"fail": 0
+				},
+				"month ở cả 3 mảng nằm trong 1–12 và không trùng (U08)": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				368
+			],
+			"allTests": [
+				{
+					"Status 200": true,
+					"Envelope đủ message / errors / data / meta; errors null": true,
+					"data đủ fiscal_year / available_fiscal_years / summary / trends / monthly_details": true,
+					"fiscal_year là integer và nằm trong available_fiscal_years (U06)": true,
+					"summary đủ field và đúng kiểu": true,
+					"trends.monthly_contracts: mỗi phần tử đủ field integer": true,
+					"trends.monthly_staff: mỗi phần tử đủ field integer": true,
+					"monthly_details: mỗi phần tử đủ field integer": true,
+					"month ở cả 3 mảng nằm trong 1–12 và không trùng (U08)": true
+				}
+			]
+		},
+		{
+			"id": "ab659b1e-3ff8-46ff-8802-c42b7ec45bc0",
+			"name": "WELVIE_DASHBOARD_TC_002 - fiscal_year để trống (null) → 200",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/dashboard?fiscal_year=",
+			"time": 317,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200": true,
+				"errors null; data.fiscal_year là integer và nằm trong available_fiscal_years": true
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"errors null; data.fiscal_year là integer và nằm trong available_fiscal_years": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				317
+			],
+			"allTests": [
+				{
+					"Status 200": true,
+					"errors null; data.fiscal_year là integer và nằm trong available_fiscal_years": true
+				}
+			]
+		},
+		{
+			"id": "e151b867-b9b6-4931-81c3-9d29c69b4052",
+			"name": "WELVIE_DASHBOARD_TC_003 - fiscal_year = 2016 (min) → trả đúng năm",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/dashboard?fiscal_year=2016",
+			"time": 177,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200": true,
+				"errors null; data.fiscal_year = 2016": true
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"errors null; data.fiscal_year = 2016": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				177
+			],
+			"allTests": [
+				{
+					"Status 200": true,
+					"errors null; data.fiscal_year = 2016": true
+				}
+			]
+		},
+		{
+			"id": "8de42a05-1ddd-489b-9a9f-66761d56eb85",
+			"name": "WELVIE_DASHBOARD_TC_004 - fiscal_year = 2026 (max) → trả đúng năm",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/dashboard?fiscal_year=2026",
+			"time": 310,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200": true,
+				"errors null; data.fiscal_year = 2026": true
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"errors null; data.fiscal_year = 2026": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				310
+			],
+			"allTests": [
+				{
+					"Status 200": true,
+					"errors null; data.fiscal_year = 2026": true
+				}
+			]
+		},
+		{
+			"id": "151c8d13-0634-4124-8969-1db383424289",
+			"name": "WELVIE_DASHBOARD_TC_005 - fiscal_year = 2015 (min - 1)",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/dashboard?fiscal_year=2015",
+			"time": 196,
+			"responseCode": {
+				"code": 422,
+				"name": "Unprocessable Entity (WebDAV) (RFC 4918)"
+			},
+			"tests": {
+				"Status 422": true,
+				"Envelope ValidationException; errors.fiscal_year là mảng string": true
+			},
+			"testPassFailCounts": {
+				"Status 422": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Envelope ValidationException; errors.fiscal_year là mảng string": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				196
+			],
+			"allTests": [
+				{
+					"Status 422": true,
+					"Envelope ValidationException; errors.fiscal_year là mảng string": true
+				}
+			]
+		},
+		{
+			"id": "e92d0849-1887-4fc2-b122-d9fb9ef0485f",
+			"name": "WELVIE_DASHBOARD_TC_006 - fiscal_year = 2027 (max + 1)",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/dashboard?fiscal_year=2027",
+			"time": 137,
+			"responseCode": {
+				"code": 422,
+				"name": "Unprocessable Entity (WebDAV) (RFC 4918)"
+			},
+			"tests": {
+				"Status 422": true,
+				"Envelope ValidationException; errors.fiscal_year là mảng string": true
+			},
+			"testPassFailCounts": {
+				"Status 422": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Envelope ValidationException; errors.fiscal_year là mảng string": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				137
+			],
+			"allTests": [
+				{
+					"Status 422": true,
+					"Envelope ValidationException; errors.fiscal_year là mảng string": true
+				}
+			]
+		},
+		{
+			"id": "8b3bf944-00f8-419e-8e16-e462bf97fb0f",
+			"name": "WELVIE_DASHBOARD_TC_007 - fiscal_year không phải số (abc)",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/dashboard?fiscal_year=abc",
+			"time": 120,
+			"responseCode": {
+				"code": 422,
+				"name": "Unprocessable Entity (WebDAV) (RFC 4918)"
+			},
+			"tests": {
+				"Status 422": true,
+				"Envelope ValidationException; errors.fiscal_year là mảng string": true
+			},
+			"testPassFailCounts": {
+				"Status 422": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Envelope ValidationException; errors.fiscal_year là mảng string": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				120
+			],
+			"allTests": [
+				{
+					"Status 422": true,
+					"Envelope ValidationException; errors.fiscal_year là mảng string": true
+				}
+			]
+		},
+		{
+			"id": "e2a93ec7-4640-49a1-9f0f-0132fc3708d4",
+			"name": "WELVIE_DASHBOARD_TC_008 - Không gửi token",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/dashboard",
+			"time": 172,
+			"responseCode": {
+				"code": 401,
+				"name": "Unauthorized"
+			},
+			"tests": {
+				"Status 401": true,
+				"Envelope AuthenticationException: errors null, data null (không lộ số liệu)": true
+			},
+			"testPassFailCounts": {
+				"Status 401": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Envelope AuthenticationException: errors null, data null (không lộ số liệu)": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				172
+			],
+			"allTests": [
+				{
+					"Status 401": true,
+					"Envelope AuthenticationException: errors null, data null (không lộ số liệu)": true
+				}
+			]
+		},
+		{
+			"id": "1fac0684-63c1-4029-a563-9657b85bbce0",
+			"name": "WELVIE_DASHBOARD_TC_009 - Token không hợp lệ",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/dashboard",
+			"time": 240,
+			"responseCode": {
+				"code": 401,
+				"name": "Unauthorized"
+			},
+			"tests": {
+				"Status 401": true,
+				"Envelope AuthenticationException: errors null, data null": true
+			},
+			"testPassFailCounts": {
+				"Status 401": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Envelope AuthenticationException: errors null, data null": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				240
+			],
+			"allTests": [
+				{
+					"Status 401": true,
+					"Envelope AuthenticationException: errors null, data null": true
+				}
+			]
+		},
+		{
+			"id": "24f65c55-100c-4079-b6fe-e4b5b6ffa074",
+			"name": "WELVIE_DASHBOARD_TC_010 - Viewer xem được Dashboard",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/dashboard",
+			"time": 798,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200 (viewer = 👁 theo 権限マトリックス)": true,
+				"errors null; data đủ field bắt buộc": true
+			},
+			"testPassFailCounts": {
+				"Status 200 (viewer = 👁 theo 権限マトリックス)": {
+					"pass": 1,
+					"fail": 0
+				},
+				"errors null; data đủ field bắt buộc": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				798
+			],
+			"allTests": [
+				{
+					"Status 200 (viewer = 👁 theo 権限マトリックス)": true,
+					"errors null; data đủ field bắt buộc": true
+				}
+			]
+		},
+		{
+			"id": "6cf4db01-14ae-4dd1-ad36-34acfda6040d",
+			"name": "WELVIE_UPDATETENANT_TC_001 - GET tenant {{tenant_id}} và lưu giá trị gốc (ut_base)",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/tenants/86",
+			"time": 355,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200": true,
+				"data có đủ field dùng để dựng body PUT": true,
+				"id trả về đúng tenant_id": true,
+				"type hiện tại nằm trong enum PUT (1, 2, 4, 5) — U04": true,
+				"status hiện tại nằm trong enum PUT (1–5) — U02": true
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"data có đủ field dùng để dựng body PUT": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id trả về đúng tenant_id": {
+					"pass": 1,
+					"fail": 0
+				},
+				"type hiện tại nằm trong enum PUT (1, 2, 4, 5) — U04": {
+					"pass": 1,
+					"fail": 0
+				},
+				"status hiện tại nằm trong enum PUT (1–5) — U02": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				355
+			],
+			"allTests": [
+				{
+					"Status 200": true,
+					"data có đủ field dùng để dựng body PUT": true,
+					"id trả về đúng tenant_id": true,
+					"type hiện tại nằm trong enum PUT (1, 2, 4, 5) — U04": true,
+					"status hiện tại nằm trong enum PUT (1–5) — U02": true
+				}
+			]
+		},
+		{
+			"id": "11fa33d7-d86c-46b6-ab0c-efbc0b6dd295",
+			"name": "WELVIE_UPDATETENANT_TC_002 - Cập nhật name / representative_name / staff_limit / contract_date",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/tenants/86",
+			"time": 257,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200": true,
+				"Envelope: message string, errors null, data null": true
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Envelope: message string, errors null, data null": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				257
+			],
+			"allTests": [
+				{
+					"Status 200": true,
+					"Envelope: message string, errors null, data null": true
+				}
+			]
+		},
+		{
+			"id": "35a83f9b-fb29-47ce-9de2-7fffa67c4bdb",
+			"name": "WELVIE_UPDATETENANT_TC_003 - GET xác nhận dữ liệu TC_002 đã được lưu",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/tenants/86",
+			"time": 241,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200": true,
+				"name đã lưu đúng": true,
+				"representative_name đã lưu đúng": true,
+				"staff_limit đã lưu đúng": true,
+				"contract_date đã lưu đúng": true,
+				"CS担当 giữ nguyên": true,
+				"option_ids đã lưu đúng": true,
+				"feature_ids đã lưu đúng": true
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"name đã lưu đúng": {
+					"pass": 1,
+					"fail": 0
+				},
+				"representative_name đã lưu đúng": {
+					"pass": 1,
+					"fail": 0
+				},
+				"staff_limit đã lưu đúng": {
+					"pass": 1,
+					"fail": 0
+				},
+				"contract_date đã lưu đúng": {
+					"pass": 1,
+					"fail": 0
+				},
+				"CS担当 giữ nguyên": {
+					"pass": 1,
+					"fail": 0
+				},
+				"option_ids đã lưu đúng": {
+					"pass": 1,
+					"fail": 0
+				},
+				"feature_ids đã lưu đúng": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				241
+			],
+			"allTests": [
+				{
+					"Status 200": true,
+					"name đã lưu đúng": true,
+					"representative_name đã lưu đúng": true,
+					"staff_limit đã lưu đúng": true,
+					"contract_date đã lưu đúng": true,
+					"CS担当 giữ nguyên": true,
+					"option_ids đã lưu đúng": true,
+					"feature_ids đã lưu đúng": true
+				}
+			]
+		},
+		{
+			"id": "7025a0cd-1387-4597-9425-b6ceded19cab",
+			"name": "WELVIE_UPDATETENANT_TC_004 - Gửi lại đúng body TC_002 lần 2 vẫn 200",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/tenants/86",
+			"time": 186,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200": true,
+				"Envelope: errors null, data null": true
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Envelope: errors null, data null": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				186
+			],
+			"allTests": [
+				{
+					"Status 200": true,
+					"Envelope: errors null, data null": true
+				}
+			]
+		},
+		{
+			"id": "a1facf4f-49fb-47ba-b733-1ad22e3435d5",
+			"name": "WELVIE_UPDATETENANT_TC_005 - GET xác nhận dữ liệu không đổi sau lần PUT thứ 2",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/tenants/86",
+			"time": 226,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200": true,
+				"name / representative_name / staff_limit / contract_date không đổi": true,
+				"CS / option_ids / feature_ids không đổi": true
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"name / representative_name / staff_limit / contract_date không đổi": {
+					"pass": 1,
+					"fail": 0
+				},
+				"CS / option_ids / feature_ids không đổi": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				226
+			],
+			"allTests": [
+				{
+					"Status 200": true,
+					"name / representative_name / staff_limit / contract_date không đổi": true,
+					"CS / option_ids / feature_ids không đổi": true
+				}
+			]
+		},
+		{
+			"id": "3f0fae1a-9c89-4a19-ae1c-1c24a4bb4be9",
+			"name": "WELVIE_UPDATETENANT_TC_006 - representative_name và contract_date = null → 200",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/tenants/86",
+			"time": 180,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200": true,
+				"Envelope: errors null, data null": true
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Envelope: errors null, data null": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				180
+			],
+			"allTests": [
+				{
+					"Status 200": true,
+					"Envelope: errors null, data null": true
+				}
+			]
+		},
+		{
+			"id": "7f00db13-fbf6-4a42-a4ec-bc369c1d4263",
+			"name": "WELVIE_UPDATETENANT_TC_007 - GET xác nhận representative_name và contract_date đã thành null",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/tenants/86",
+			"time": 225,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200": true,
+				"representative_name = null": true,
+				"contract_date = null": true
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"representative_name = null": {
+					"pass": 1,
+					"fail": 0
+				},
+				"contract_date = null": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				225
+			],
+			"allTests": [
+				{
+					"Status 200": true,
+					"representative_name = null": true,
+					"contract_date = null": true
+				}
+			]
+		},
+		{
+			"id": "16d0c4c8-9ee8-4bc6-b1fa-ec9826695f8d",
+			"name": "WELVIE_UPDATETENANT_TC_008 - option_ids và feature_ids = [] → 200",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/tenants/86",
+			"time": 168,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200": true,
+				"Envelope: errors null, data null": true
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Envelope: errors null, data null": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				168
+			],
+			"allTests": [
+				{
+					"Status 200": true,
+					"Envelope: errors null, data null": true
+				}
+			]
+		},
+		{
+			"id": "e1912658-44e1-4284-9f34-91c12cf58b54",
+			"name": "WELVIE_UPDATETENANT_TC_009 - GET xác nhận option_ids và feature_ids đã rỗng",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/tenants/86",
+			"time": 230,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200": true,
+				"option_ids = []": true,
+				"feature_ids = []": true
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"option_ids = []": {
+					"pass": 1,
+					"fail": 0
+				},
+				"feature_ids = []": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				230
+			],
+			"allTests": [
+				{
+					"Status 200": true,
+					"option_ids = []": true,
+					"feature_ids = []": true
+				}
+			]
+		},
+		{
+			"id": "9c961a28-235c-4c25-82ca-4e6d06640f19",
+			"name": "WELVIE_UPDATETENANT_TC_010 - name 255 ký tự (max)",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/tenants/86",
+			"time": 236,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200": true,
+				"Envelope: errors null, data null": true,
+				"name gửi đi dài đúng 255 ký tự": true
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Envelope: errors null, data null": {
+					"pass": 1,
+					"fail": 0
+				},
+				"name gửi đi dài đúng 255 ký tự": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				236
+			],
+			"allTests": [
+				{
+					"Status 200": true,
+					"Envelope: errors null, data null": true,
+					"name gửi đi dài đúng 255 ký tự": true
+				}
+			]
+		},
+		{
+			"id": "db928b0d-42c2-4971-a9f3-a2f49d49b233",
+			"name": "WELVIE_UPDATETENANT_TC_011 - GET xác nhận name 255 ký tự được lưu nguyên vẹn",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/tenants/86",
+			"time": 241,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200": true,
+				"name lưu đủ 255 ký tự, không bị cắt": true
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"name lưu đủ 255 ký tự, không bị cắt": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				241
+			],
+			"allTests": [
+				{
+					"Status 200": true,
+					"name lưu đủ 255 ký tự, không bị cắt": true
+				}
+			]
+		},
+		{
+			"id": "8e129326-085c-413a-9b33-f378d5f54e5c",
+			"name": "WELVIE_UPDATETENANT_TC_012 - representative_name 255 ký tự (max)",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/tenants/86",
+			"time": 183,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200": true,
+				"Envelope: errors null, data null": true,
+				"representative_name gửi đi dài đúng 255 ký tự": true
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Envelope: errors null, data null": {
+					"pass": 1,
+					"fail": 0
+				},
+				"representative_name gửi đi dài đúng 255 ký tự": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				183
+			],
+			"allTests": [
+				{
+					"Status 200": true,
+					"Envelope: errors null, data null": true,
+					"representative_name gửi đi dài đúng 255 ký tự": true
+				}
+			]
+		},
+		{
+			"id": "2577ebfc-e349-406a-bbea-edab35c08fb6",
+			"name": "WELVIE_UPDATETENANT_TC_013 - cancel_description 1000 ký tự (max)",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/tenants/86",
+			"time": 166,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200": true,
+				"Envelope: errors null, data null": true,
+				"cancel_description gửi đi dài đúng 1000 ký tự": true
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Envelope: errors null, data null": {
+					"pass": 1,
+					"fail": 0
+				},
+				"cancel_description gửi đi dài đúng 1000 ký tự": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				166
+			],
+			"allTests": [
+				{
+					"Status 200": true,
+					"Envelope: errors null, data null": true,
+					"cancel_description gửi đi dài đúng 1000 ký tự": true
+				}
+			]
+		},
+		{
+			"id": "d51485ee-4213-45af-b2cb-5dc88be70e33",
+			"name": "WELVIE_UPDATETENANT_TC_014 - staff_limit = 1 (min theo DOC)",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/tenants/86",
+			"time": 216,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200": true,
+				"Envelope: errors null, data null": true
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Envelope: errors null, data null": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				216
+			],
+			"allTests": [
+				{
+					"Status 200": true,
+					"Envelope: errors null, data null": true
+				}
+			]
+		},
+		{
+			"id": "6538c711-efa1-421a-943f-505188cbdeee",
+			"name": "WELVIE_UPDATETENANT_TC_015 - GET xác nhận dữ liệu boundary cuối cùng đã được lưu",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/tenants/86",
+			"time": 251,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200": true,
+				"name / representative_name / staff_limit khớp lần PUT thành công gần nhất": true
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"name / representative_name / staff_limit khớp lần PUT thành công gần nhất": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				251
+			],
+			"allTests": [
+				{
+					"Status 200": true,
+					"name / representative_name / staff_limit khớp lần PUT thành công gần nhất": true
+				}
+			]
+		},
+		{
+			"id": "4ed6d94c-4a1f-421f-8deb-23793b69f14c",
+			"name": "WELVIE_UPDATETENANT_TC_016 - Thiếu field name",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/tenants/86",
+			"time": 184,
+			"responseCode": {
+				"code": 422,
+				"name": "Unprocessable Entity (WebDAV) (RFC 4918)"
+			},
+			"tests": {
+				"Status 422": true,
+				"Envelope ValidationException: message string, errors object, data null": true,
+				"errors có lỗi cho field name": true
+			},
+			"testPassFailCounts": {
+				"Status 422": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Envelope ValidationException: message string, errors object, data null": {
+					"pass": 1,
+					"fail": 0
+				},
+				"errors có lỗi cho field name": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				184
+			],
+			"allTests": [
+				{
+					"Status 422": true,
+					"Envelope ValidationException: message string, errors object, data null": true,
+					"errors có lỗi cho field name": true
+				}
+			]
+		},
+		{
+			"id": "c58faf27-3c0f-4362-8464-97d56dac2929",
+			"name": "WELVIE_UPDATETENANT_TC_017 - name 256 ký tự (max + 1)",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/tenants/86",
+			"time": 224,
+			"responseCode": {
+				"code": 422,
+				"name": "Unprocessable Entity (WebDAV) (RFC 4918)"
+			},
+			"tests": {
+				"Status 422": true,
+				"Envelope ValidationException: message string, errors object, data null": true,
+				"errors có lỗi cho field name": true
+			},
+			"testPassFailCounts": {
+				"Status 422": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Envelope ValidationException: message string, errors object, data null": {
+					"pass": 1,
+					"fail": 0
+				},
+				"errors có lỗi cho field name": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				224
+			],
+			"allTests": [
+				{
+					"Status 422": true,
+					"Envelope ValidationException: message string, errors object, data null": true,
+					"errors có lỗi cho field name": true
+				}
+			]
+		},
+		{
+			"id": "28311d66-4fad-4724-be20-07989360fda1",
+			"name": "WELVIE_UPDATETENANT_TC_018 - representative_name 256 ký tự (max + 1)",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/tenants/86",
+			"time": 160,
+			"responseCode": {
+				"code": 422,
+				"name": "Unprocessable Entity (WebDAV) (RFC 4918)"
+			},
+			"tests": {
+				"Status 422": true,
+				"Envelope ValidationException: message string, errors object, data null": true,
+				"errors có lỗi cho field representative_name": true
+			},
+			"testPassFailCounts": {
+				"Status 422": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Envelope ValidationException: message string, errors object, data null": {
+					"pass": 1,
+					"fail": 0
+				},
+				"errors có lỗi cho field representative_name": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				160
+			],
+			"allTests": [
+				{
+					"Status 422": true,
+					"Envelope ValidationException: message string, errors object, data null": true,
+					"errors có lỗi cho field representative_name": true
+				}
+			]
+		},
+		{
+			"id": "af6a7e35-1ac3-4f15-b7d6-9df9477e1681",
+			"name": "WELVIE_UPDATETENANT_TC_019 - cancel_description 1001 ký tự (max + 1)",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/tenants/86",
+			"time": 166,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 422": false,
+				"Envelope ValidationException: message string, errors object, data null": false,
+				"errors có lỗi cho field cancel_description": false
+			},
+			"testPassFailCounts": {
+				"Status 422": {
+					"pass": 0,
+					"fail": 1
+				},
+				"Envelope ValidationException: message string, errors object, data null": {
+					"pass": 0,
+					"fail": 1
+				},
+				"errors có lỗi cho field cancel_description": {
+					"pass": 0,
+					"fail": 1
+				}
+			},
+			"times": [
+				166
+			],
+			"allTests": [
+				{
+					"Status 422": false,
+					"Envelope ValidationException: message string, errors object, data null": false,
+					"errors có lỗi cho field cancel_description": false
+				}
+			]
+		},
+		{
+			"id": "a12dd635-c85b-4578-a658-5545ef0589f1",
+			"name": "WELVIE_UPDATETENANT_TC_020 - type = 3 (FcMember, ngoài enum PUT)",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/tenants/86",
+			"time": 136,
+			"responseCode": {
+				"code": 422,
+				"name": "Unprocessable Entity (WebDAV) (RFC 4918)"
+			},
+			"tests": {
+				"Status 422": true,
+				"Envelope ValidationException: message string, errors object, data null": true,
+				"errors có lỗi cho field type": true
+			},
+			"testPassFailCounts": {
+				"Status 422": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Envelope ValidationException: message string, errors object, data null": {
+					"pass": 1,
+					"fail": 0
+				},
+				"errors có lỗi cho field type": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				136
+			],
+			"allTests": [
+				{
+					"Status 422": true,
+					"Envelope ValidationException: message string, errors object, data null": true,
+					"errors có lỗi cho field type": true
+				}
+			]
+		},
+		{
+			"id": "e8fe77d9-8660-4e5c-8d88-7b6bd25d1b56",
+			"name": "WELVIE_UPDATETENANT_TC_021 - status = 0 (dưới enum)",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/tenants/86",
+			"time": 171,
+			"responseCode": {
+				"code": 422,
+				"name": "Unprocessable Entity (WebDAV) (RFC 4918)"
+			},
+			"tests": {
+				"Status 422": true,
+				"Envelope ValidationException: message string, errors object, data null": true,
+				"errors có lỗi cho field status": true
+			},
+			"testPassFailCounts": {
+				"Status 422": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Envelope ValidationException: message string, errors object, data null": {
+					"pass": 1,
+					"fail": 0
+				},
+				"errors có lỗi cho field status": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				171
+			],
+			"allTests": [
+				{
+					"Status 422": true,
+					"Envelope ValidationException: message string, errors object, data null": true,
+					"errors có lỗi cho field status": true
+				}
+			]
+		},
+		{
+			"id": "4dba073f-87ff-4cae-9dea-950349af6988",
+			"name": "WELVIE_UPDATETENANT_TC_022 - status = 6 (trên enum)",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/tenants/86",
+			"time": 243,
+			"responseCode": {
+				"code": 422,
+				"name": "Unprocessable Entity (WebDAV) (RFC 4918)"
+			},
+			"tests": {
+				"Status 422": true,
+				"Envelope ValidationException: message string, errors object, data null": true,
+				"errors có lỗi cho field status": true
+			},
+			"testPassFailCounts": {
+				"Status 422": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Envelope ValidationException: message string, errors object, data null": {
+					"pass": 1,
+					"fail": 0
+				},
+				"errors có lỗi cho field status": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				243
+			],
+			"allTests": [
+				{
+					"Status 422": true,
+					"Envelope ValidationException: message string, errors object, data null": true,
+					"errors có lỗi cho field status": true
+				}
+			]
+		},
+		{
+			"id": "d0544375-4dfe-4909-baa5-99593a9f4b0b",
+			"name": "WELVIE_UPDATETENANT_TC_023 - staff_limit = 0 (min - 1)",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/tenants/86",
+			"time": 201,
+			"responseCode": {
+				"code": 422,
+				"name": "Unprocessable Entity (WebDAV) (RFC 4918)"
+			},
+			"tests": {
+				"Status 422": true,
+				"Envelope ValidationException: message string, errors object, data null": true,
+				"errors có lỗi cho field staff_limit": true
+			},
+			"testPassFailCounts": {
+				"Status 422": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Envelope ValidationException: message string, errors object, data null": {
+					"pass": 1,
+					"fail": 0
+				},
+				"errors có lỗi cho field staff_limit": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				201
+			],
+			"allTests": [
+				{
+					"Status 422": true,
+					"Envelope ValidationException: message string, errors object, data null": true,
+					"errors có lỗi cho field staff_limit": true
+				}
+			]
+		},
+		{
+			"id": "b444eddb-9227-4608-9f37-341eab9d6bb0",
+			"name": "WELVIE_UPDATETENANT_TC_024 - staff_limit là chuỗi (abc)",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/tenants/86",
+			"time": 227,
+			"responseCode": {
+				"code": 422,
+				"name": "Unprocessable Entity (WebDAV) (RFC 4918)"
+			},
+			"tests": {
+				"Status 422": true,
+				"Envelope ValidationException: message string, errors object, data null": true,
+				"errors có lỗi cho field staff_limit": true
+			},
+			"testPassFailCounts": {
+				"Status 422": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Envelope ValidationException: message string, errors object, data null": {
+					"pass": 1,
+					"fail": 0
+				},
+				"errors có lỗi cho field staff_limit": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				227
+			],
+			"allTests": [
+				{
+					"Status 422": true,
+					"Envelope ValidationException: message string, errors object, data null": true,
+					"errors có lỗi cho field staff_limit": true
+				}
+			]
+		},
+		{
+			"id": "26da360e-50ee-46c0-8b3a-61e0e2b25f77",
+			"name": "WELVIE_UPDATETENANT_TC_025 - contract_date = 2026/13/01 (ngày không tồn tại)",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/tenants/86",
+			"time": 236,
+			"responseCode": {
+				"code": 422,
+				"name": "Unprocessable Entity (WebDAV) (RFC 4918)"
+			},
+			"tests": {
+				"Status 422": true,
+				"Envelope ValidationException: message string, errors object, data null": true,
+				"errors có lỗi cho field contract_date": true
+			},
+			"testPassFailCounts": {
+				"Status 422": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Envelope ValidationException: message string, errors object, data null": {
+					"pass": 1,
+					"fail": 0
+				},
+				"errors có lỗi cho field contract_date": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				236
+			],
+			"allTests": [
+				{
+					"Status 422": true,
+					"Envelope ValidationException: message string, errors object, data null": true,
+					"errors có lỗi cho field contract_date": true
+				}
+			]
+		},
+		{
+			"id": "fbd5166e-f8cd-4c41-bf0d-e20fb53baa2b",
+			"name": "WELVIE_UPDATETENANT_TC_026 - contract_date = abc (sai định dạng)",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/tenants/86",
+			"time": 215,
+			"responseCode": {
+				"code": 422,
+				"name": "Unprocessable Entity (WebDAV) (RFC 4918)"
+			},
+			"tests": {
+				"Status 422": true,
+				"Envelope ValidationException: message string, errors object, data null": true,
+				"errors có lỗi cho field contract_date": true
+			},
+			"testPassFailCounts": {
+				"Status 422": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Envelope ValidationException: message string, errors object, data null": {
+					"pass": 1,
+					"fail": 0
+				},
+				"errors có lỗi cho field contract_date": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				215
+			],
+			"allTests": [
+				{
+					"Status 422": true,
+					"Envelope ValidationException: message string, errors object, data null": true,
+					"errors có lỗi cho field contract_date": true
+				}
+			]
+		},
+		{
+			"id": "f677ffd6-72f9-45dd-bb14-ed07e4564f7e",
+			"name": "WELVIE_UPDATETENANT_TC_027 - customer_support_admin_id không tồn tại (999999999)",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/tenants/86",
+			"time": 228,
+			"responseCode": {
+				"code": 422,
+				"name": "Unprocessable Entity (WebDAV) (RFC 4918)"
+			},
+			"tests": {
+				"Status 422": true,
+				"Envelope ValidationException: message string, errors object, data null": true,
+				"errors có lỗi cho field customer_support_admin_id": true
+			},
+			"testPassFailCounts": {
+				"Status 422": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Envelope ValidationException: message string, errors object, data null": {
+					"pass": 1,
+					"fail": 0
+				},
+				"errors có lỗi cho field customer_support_admin_id": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				228
+			],
+			"allTests": [
+				{
+					"Status 422": true,
+					"Envelope ValidationException: message string, errors object, data null": true,
+					"errors có lỗi cho field customer_support_admin_id": true
+				}
+			]
+		},
+		{
+			"id": "ccbe9dc1-f11b-48ef-8e77-44febce5c498",
+			"name": "WELVIE_UPDATETENANT_TC_028 - Thiếu field cancel_reason_type",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/tenants/86",
+			"time": 241,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 422": false,
+				"Envelope ValidationException: message string, errors object, data null": false,
+				"errors có lỗi cho field cancel_reason_type": false
+			},
+			"testPassFailCounts": {
+				"Status 422": {
+					"pass": 0,
+					"fail": 1
+				},
+				"Envelope ValidationException: message string, errors object, data null": {
+					"pass": 0,
+					"fail": 1
+				},
+				"errors có lỗi cho field cancel_reason_type": {
+					"pass": 0,
+					"fail": 1
+				}
+			},
+			"times": [
+				241
+			],
+			"allTests": [
+				{
+					"Status 422": false,
+					"Envelope ValidationException: message string, errors object, data null": false,
+					"errors có lỗi cho field cancel_reason_type": false
+				}
+			]
+		},
+		{
+			"id": "750aadd0-40c2-40b9-8587-f3cede4ff718",
+			"name": "WELVIE_UPDATETENANT_TC_029 - cancel_reason_type = 0 (dưới enum)",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/tenants/86",
+			"time": 167,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 422": false,
+				"Envelope ValidationException: message string, errors object, data null": false,
+				"errors có lỗi cho field cancel_reason_type": false
+			},
+			"testPassFailCounts": {
+				"Status 422": {
+					"pass": 0,
+					"fail": 1
+				},
+				"Envelope ValidationException: message string, errors object, data null": {
+					"pass": 0,
+					"fail": 1
+				},
+				"errors có lỗi cho field cancel_reason_type": {
+					"pass": 0,
+					"fail": 1
+				}
+			},
+			"times": [
+				167
+			],
+			"allTests": [
+				{
+					"Status 422": false,
+					"Envelope ValidationException: message string, errors object, data null": false,
+					"errors có lỗi cho field cancel_reason_type": false
+				}
+			]
+		},
+		{
+			"id": "ca600796-c085-4c6e-ae2b-a63de7353c0e",
+			"name": "WELVIE_UPDATETENANT_TC_030 - cancel_reason_type = 6 (trên enum)",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/tenants/86",
+			"time": 177,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 422": false,
+				"Envelope ValidationException: message string, errors object, data null": false,
+				"errors có lỗi cho field cancel_reason_type": false
+			},
+			"testPassFailCounts": {
+				"Status 422": {
+					"pass": 0,
+					"fail": 1
+				},
+				"Envelope ValidationException: message string, errors object, data null": {
+					"pass": 0,
+					"fail": 1
+				},
+				"errors có lỗi cho field cancel_reason_type": {
+					"pass": 0,
+					"fail": 1
+				}
+			},
+			"times": [
+				177
+			],
+			"allTests": [
+				{
+					"Status 422": false,
+					"Envelope ValidationException: message string, errors object, data null": false,
+					"errors có lỗi cho field cancel_reason_type": false
+				}
+			]
+		},
+		{
+			"id": "ee65e3ae-0f8d-44cb-b24f-d925a08597c0",
+			"name": "WELVIE_UPDATETENANT_TC_031 - feature_ids chứa giá trị ngoài enum (8)",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/tenants/86",
+			"time": 162,
+			"responseCode": {
+				"code": 422,
+				"name": "Unprocessable Entity (WebDAV) (RFC 4918)"
+			},
+			"tests": {
+				"Status 422": true,
+				"Envelope ValidationException: message string, errors object, data null": true,
+				"errors có lỗi cho field feature_ids": true
+			},
+			"testPassFailCounts": {
+				"Status 422": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Envelope ValidationException: message string, errors object, data null": {
+					"pass": 1,
+					"fail": 0
+				},
+				"errors có lỗi cho field feature_ids": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				162
+			],
+			"allTests": [
+				{
+					"Status 422": true,
+					"Envelope ValidationException: message string, errors object, data null": true,
+					"errors có lỗi cho field feature_ids": true
+				}
+			]
+		},
+		{
+			"id": "7e53a3de-9acb-4bf5-ae2c-2c5d07306d12",
+			"name": "WELVIE_UPDATETENANT_TC_032 - option_ids chứa giá trị ngoài enum (2)",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/tenants/86",
+			"time": 231,
+			"responseCode": {
+				"code": 422,
+				"name": "Unprocessable Entity (WebDAV) (RFC 4918)"
+			},
+			"tests": {
+				"Status 422": true,
+				"Envelope ValidationException: message string, errors object, data null": true,
+				"errors có lỗi cho field option_ids": true
+			},
+			"testPassFailCounts": {
+				"Status 422": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Envelope ValidationException: message string, errors object, data null": {
+					"pass": 1,
+					"fail": 0
+				},
+				"errors có lỗi cho field option_ids": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				231
+			],
+			"allTests": [
+				{
+					"Status 422": true,
+					"Envelope ValidationException: message string, errors object, data null": true,
+					"errors có lỗi cho field option_ids": true
+				}
+			]
+		},
+		{
+			"id": "c4202646-092b-422c-aebd-cef0ba332512",
+			"name": "WELVIE_UPDATETENANT_TC_033 - GET xác nhận các request 422 không làm thay đổi dữ liệu",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/tenants/86",
+			"time": 277,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200": true,
+				"name / representative_name / staff_limit vẫn bằng lần PUT thành công gần nhất": false,
+				"type / status / CS / option_ids / feature_ids không bị đổi": true
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"name / representative_name / staff_limit vẫn bằng lần PUT thành công gần nhất": {
+					"pass": 0,
+					"fail": 1
+				},
+				"type / status / CS / option_ids / feature_ids không bị đổi": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				277
+			],
+			"allTests": [
+				{
+					"Status 200": true,
+					"name / representative_name / staff_limit vẫn bằng lần PUT thành công gần nhất": false,
+					"type / status / CS / option_ids / feature_ids không bị đổi": true
+				}
+			]
+		},
+		{
+			"id": "25a6b1b2-b184-40ce-818f-2e9ad03d0240",
+			"name": "WELVIE_UPDATETENANT_TC_034 - Không gửi token → 401",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/tenants/86",
+			"time": 172,
+			"responseCode": {
+				"code": 401,
+				"name": "Unauthorized"
+			},
+			"tests": {
+				"Status 401": true,
+				"Envelope AuthenticationException: message string, errors null, data null": true
+			},
+			"testPassFailCounts": {
+				"Status 401": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Envelope AuthenticationException: message string, errors null, data null": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				172
+			],
+			"allTests": [
+				{
+					"Status 401": true,
+					"Envelope AuthenticationException: message string, errors null, data null": true
+				}
+			]
+		},
+		{
+			"id": "c0c9e99d-e30a-46a7-a7fd-4aab3f4d8ba6",
+			"name": "WELVIE_UPDATETENANT_TC_035 - Token không hợp lệ → 401",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/tenants/86",
+			"time": 249,
+			"responseCode": {
+				"code": 401,
+				"name": "Unauthorized"
+			},
+			"tests": {
+				"Status 401": true,
+				"Envelope AuthenticationException: errors null, data null": true
+			},
+			"testPassFailCounts": {
+				"Status 401": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Envelope AuthenticationException: errors null, data null": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				249
+			],
+			"allTests": [
+				{
+					"Status 401": true,
+					"Envelope AuthenticationException: errors null, data null": true
+				}
+			]
+		},
+		{
+			"id": "66444770-e35f-4597-9843-5038b0ed03bb",
+			"name": "WELVIE_UPDATETENANT_TC_036 - Viewer sửa tenant → 403",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/tenants/86",
+			"time": 241,
+			"responseCode": {
+				"code": 403,
+				"name": "Forbidden"
+			},
+			"tests": {
+				"Status 403 (viewer = ❌ ở 法人 — 編集)": true,
+				"Envelope AuthorizationException: message string, errors null, data null": true
+			},
+			"testPassFailCounts": {
+				"Status 403 (viewer = ❌ ở 法人 — 編集)": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Envelope AuthorizationException: message string, errors null, data null": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				241
+			],
+			"allTests": [
+				{
+					"Status 403 (viewer = ❌ ở 法人 — 編集)": true,
+					"Envelope AuthorizationException: message string, errors null, data null": true
+				}
+			]
+		},
+		{
+			"id": "0d6f1b75-5360-4fe5-94c4-85f468bcd4e9",
+			"name": "WELVIE_UPDATETENANT_TC_037 - tenant không tồn tại (999999999) → 404",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/tenants/999999999",
+			"time": 363,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Status 404": true,
+				"Envelope ModelNotFoundException: message string, errors null, data null": true
+			},
+			"testPassFailCounts": {
+				"Status 404": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Envelope ModelNotFoundException: message string, errors null, data null": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				363
+			],
+			"allTests": [
+				{
+					"Status 404": true,
+					"Envelope ModelNotFoundException: message string, errors null, data null": true
+				}
+			]
+		},
+		{
+			"id": "518d471b-1a46-42eb-bca2-2f5aea8edd7b",
+			"name": "WELVIE_UPDATETENANT_TC_038 - PUT lại giá trị gốc của tenant",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/tenants/86",
+			"time": 326,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200": true,
+				"Envelope: errors null, data null": true
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Envelope: errors null, data null": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				326
+			],
+			"allTests": [
+				{
+					"Status 200": true,
+					"Envelope: errors null, data null": true
+				}
+			]
+		},
+		{
+			"id": "b7aca24c-d601-4993-a1bc-5e49f3316e6d",
+			"name": "WELVIE_UPDATETENANT_TC_039 - GET xác nhận tenant đã về giá trị gốc",
+			"url": "https://api-dev.stg.welvielearning.com/api/admin/tenants/86",
+			"time": 482,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200": true,
+				"name / representative_name / staff_limit / contract_date về giá trị gốc": true,
+				"type / status / CS / option_ids / feature_ids về giá trị gốc": true
+			},
+			"testPassFailCounts": {
+				"Status 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"name / representative_name / staff_limit / contract_date về giá trị gốc": {
+					"pass": 1,
+					"fail": 0
+				},
+				"type / status / CS / option_ids / feature_ids về giá trị gốc": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				482
+			],
+			"allTests": [
+				{
+					"Status 200": true,
+					"name / representative_name / staff_limit / contract_date về giá trị gốc": true,
+					"type / status / CS / option_ids / feature_ids về giá trị gốc": true
+				}
+			]
+		}
+	],
+	"count": 1,
+	"totalTime": 18370,
+	"collection": {
+		"requests": [
+			{
+				"id": "8ba6b2fe-dc7a-40a7-831d-45ffde5fae3e",
+				"method": "POST"
+			},
+			{
+				"id": "a6f7019c-017e-4f81-9918-f9e0c97f6b3f",
+				"method": "POST"
+			},
+			{
+				"id": "1792d524-47bd-4f18-b5bd-aa623708afa4",
+				"method": "GET"
+			},
+			{
+				"id": "ec002924-4386-40bf-8865-279cebfdbf40",
+				"method": "GET"
+			},
+			{
+				"id": "d0b98a3e-e4cc-43d4-b709-c578bba2b50c",
+				"method": "POST"
+			},
+			{
+				"id": "1fb7685d-db37-4fa0-a0b1-8e4b2e171848",
+				"method": "GET"
+			},
+			{
+				"id": "873791db-5667-41e2-a45e-93774ad2ad76",
+				"method": "POST"
+			},
+			{
+				"id": "1c671c80-38bf-460e-9f20-58ab09db4891",
+				"method": "POST"
+			},
+			{
+				"id": "4602b6ed-a9d8-4278-b712-2f34395fa0f3",
+				"method": "POST"
+			},
+			{
+				"id": "70a9415a-f20b-4976-a6fd-1279092e5a70",
+				"method": "POST"
+			},
+			{
+				"id": "19e6e740-5a9a-4232-a741-b7dfda3eb02d",
+				"method": "POST"
+			},
+			{
+				"id": "9cad34fd-7889-4bc4-bc43-8f5d58db4cc5",
+				"method": "POST"
+			},
+			{
+				"id": "daab9ce5-a24d-4f4a-85ce-69534da62aac",
+				"method": "POST"
+			},
+			{
+				"id": "ee146e28-ba50-425b-8ecf-bd581b251721",
+				"method": "POST"
+			},
+			{
+				"id": "ea03bb6e-04aa-4c39-8dfc-94a977ddb9c0",
+				"method": "POST"
+			},
+			{
+				"id": "3df018af-e2d4-4d33-8a7c-c046bfd8b202",
+				"method": "POST"
+			},
+			{
+				"id": "135e0ed9-7bcd-48c5-b1c1-a7f30779f743",
+				"method": "POST"
+			},
+			{
+				"id": "41ec0769-0ec5-45d0-9a8e-a7a0aab3b9e3",
+				"method": "POST"
+			},
+			{
+				"id": "98303725-9e9c-4c48-91a0-aa9709c61045",
+				"method": "POST"
+			},
+			{
+				"id": "c26320e8-49a8-4cf0-8980-ef65a748faa2",
+				"method": "POST"
+			},
+			{
+				"id": "3ce41118-8cfa-4768-87ea-577e699622df",
+				"method": "POST"
+			},
+			{
+				"id": "d2a44d7e-52b4-45c4-a4ba-fdb659e38edf",
+				"method": "POST"
+			},
+			{
+				"id": "50773bb7-1f6f-41e6-9b72-36268994a030",
+				"method": "POST"
+			},
+			{
+				"id": "d6ea4a07-d51d-4d46-a7f7-195feb9ec86b",
+				"method": "POST"
+			},
+			{
+				"id": "8d21b8e9-b91e-4de9-8cde-f4c66408d197",
+				"method": "GET"
+			},
+			{
+				"id": "ab659b1e-3ff8-46ff-8802-c42b7ec45bc0",
+				"method": "GET"
+			},
+			{
+				"id": "e151b867-b9b6-4931-81c3-9d29c69b4052",
+				"method": "GET"
+			},
+			{
+				"id": "8de42a05-1ddd-489b-9a9f-66761d56eb85",
+				"method": "GET"
+			},
+			{
+				"id": "151c8d13-0634-4124-8969-1db383424289",
+				"method": "GET"
+			},
+			{
+				"id": "e92d0849-1887-4fc2-b122-d9fb9ef0485f",
+				"method": "GET"
+			},
+			{
+				"id": "8b3bf944-00f8-419e-8e16-e462bf97fb0f",
+				"method": "GET"
+			},
+			{
+				"id": "e2a93ec7-4640-49a1-9f0f-0132fc3708d4",
+				"method": "GET"
+			},
+			{
+				"id": "1fac0684-63c1-4029-a563-9657b85bbce0",
+				"method": "GET"
+			},
+			{
+				"id": "24f65c55-100c-4079-b6fe-e4b5b6ffa074",
+				"method": "GET"
+			},
+			{
+				"id": "6cf4db01-14ae-4dd1-ad36-34acfda6040d",
+				"method": "GET"
+			},
+			{
+				"id": "11fa33d7-d86c-46b6-ab0c-efbc0b6dd295",
+				"method": "PUT"
+			},
+			{
+				"id": "35a83f9b-fb29-47ce-9de2-7fffa67c4bdb",
+				"method": "GET"
+			},
+			{
+				"id": "7025a0cd-1387-4597-9425-b6ceded19cab",
+				"method": "PUT"
+			},
+			{
+				"id": "a1facf4f-49fb-47ba-b733-1ad22e3435d5",
+				"method": "GET"
+			},
+			{
+				"id": "3f0fae1a-9c89-4a19-ae1c-1c24a4bb4be9",
+				"method": "PUT"
+			},
+			{
+				"id": "7f00db13-fbf6-4a42-a4ec-bc369c1d4263",
+				"method": "GET"
+			},
+			{
+				"id": "16d0c4c8-9ee8-4bc6-b1fa-ec9826695f8d",
+				"method": "PUT"
+			},
+			{
+				"id": "e1912658-44e1-4284-9f34-91c12cf58b54",
+				"method": "GET"
+			},
+			{
+				"id": "9c961a28-235c-4c25-82ca-4e6d06640f19",
+				"method": "PUT"
+			},
+			{
+				"id": "db928b0d-42c2-4971-a9f3-a2f49d49b233",
+				"method": "GET"
+			},
+			{
+				"id": "8e129326-085c-413a-9b33-f378d5f54e5c",
+				"method": "PUT"
+			},
+			{
+				"id": "2577ebfc-e349-406a-bbea-edab35c08fb6",
+				"method": "PUT"
+			},
+			{
+				"id": "d51485ee-4213-45af-b2cb-5dc88be70e33",
+				"method": "PUT"
+			},
+			{
+				"id": "6538c711-efa1-421a-943f-505188cbdeee",
+				"method": "GET"
+			},
+			{
+				"id": "4ed6d94c-4a1f-421f-8deb-23793b69f14c",
+				"method": "PUT"
+			},
+			{
+				"id": "c58faf27-3c0f-4362-8464-97d56dac2929",
+				"method": "PUT"
+			},
+			{
+				"id": "28311d66-4fad-4724-be20-07989360fda1",
+				"method": "PUT"
+			},
+			{
+				"id": "af6a7e35-1ac3-4f15-b7d6-9df9477e1681",
+				"method": "PUT"
+			},
+			{
+				"id": "a12dd635-c85b-4578-a658-5545ef0589f1",
+				"method": "PUT"
+			},
+			{
+				"id": "e8fe77d9-8660-4e5c-8d88-7b6bd25d1b56",
+				"method": "PUT"
+			},
+			{
+				"id": "4dba073f-87ff-4cae-9dea-950349af6988",
+				"method": "PUT"
+			},
+			{
+				"id": "d0544375-4dfe-4909-baa5-99593a9f4b0b",
+				"method": "PUT"
+			},
+			{
+				"id": "b444eddb-9227-4608-9f37-341eab9d6bb0",
+				"method": "PUT"
+			},
+			{
+				"id": "26da360e-50ee-46c0-8b3a-61e0e2b25f77",
+				"method": "PUT"
+			},
+			{
+				"id": "fbd5166e-f8cd-4c41-bf0d-e20fb53baa2b",
+				"method": "PUT"
+			},
+			{
+				"id": "f677ffd6-72f9-45dd-bb14-ed07e4564f7e",
+				"method": "PUT"
+			},
+			{
+				"id": "ccbe9dc1-f11b-48ef-8e77-44febce5c498",
+				"method": "PUT"
+			},
+			{
+				"id": "750aadd0-40c2-40b9-8587-f3cede4ff718",
+				"method": "PUT"
+			},
+			{
+				"id": "ca600796-c085-4c6e-ae2b-a63de7353c0e",
+				"method": "PUT"
+			},
+			{
+				"id": "ee65e3ae-0f8d-44cb-b24f-d925a08597c0",
+				"method": "PUT"
+			},
+			{
+				"id": "7e53a3de-9acb-4bf5-ae2c-2c5d07306d12",
+				"method": "PUT"
+			},
+			{
+				"id": "c4202646-092b-422c-aebd-cef0ba332512",
+				"method": "GET"
+			},
+			{
+				"id": "25a6b1b2-b184-40ce-818f-2e9ad03d0240",
+				"method": "PUT"
+			},
+			{
+				"id": "c0c9e99d-e30a-46a7-a7fd-4aab3f4d8ba6",
+				"method": "PUT"
+			},
+			{
+				"id": "66444770-e35f-4597-9843-5038b0ed03bb",
+				"method": "PUT"
+			},
+			{
+				"id": "0d6f1b75-5360-4fe5-94c4-85f468bcd4e9",
+				"method": "PUT"
+			},
+			{
+				"id": "518d471b-1a46-42eb-bca2-2f5aea8edd7b",
+				"method": "PUT"
+			},
+			{
+				"id": "b7aca24c-d601-4993-a1bc-5e49f3316e6d",
+				"method": "GET"
+			}
+		]
+	}
+}
