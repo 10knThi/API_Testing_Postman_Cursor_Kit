@@ -26,7 +26,7 @@
 
 ### 🔄 Thứ Tự Debug Bắt Buộc (Playwright MCP)
 
-Khi dùng Playwright MCP để debug UI, **LUÔN** tuân theo thứ tự:
+Sử dụng các tool automation **LUÔN** tuân theo thứ tự:
 
 ```
 navigate → resize(1920×1080) → wait_for(page_load) → snapshot → interact → screenshot(on_fail)
