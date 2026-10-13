@@ -79,6 +79,7 @@ Test chỉ được coi là **hoàn thành** khi đáp ứng **toàn bộ** các
 - [ ] Không để lại commented-out code
 - [ ] Không có `waitForTimeout` / `Thread.sleep` hardcoded
 - [ ] Không có test data hardcoded (email, username, ID phải random/traceable)
+- [ ] Xóa toàn bộ file thừa file rác sinh ra trong quá trình xử lý 
 
 #### 🏗️ Cấu trúc & POM
 
