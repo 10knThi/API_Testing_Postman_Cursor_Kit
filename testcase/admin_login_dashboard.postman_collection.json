@@ -1,0 +1,1111 @@
+{
+  "info": {
+    "name": "Admin Login + Dashboard API",
+    "description": "POST /api/admin/auth/login và GET /api/admin/dashboard. Nguồn expected: basic design/document.json và assumption A1–A12 đã chốt. Credential lấy từ environment Welvie STG ({{base_url}}, {{admin_email}}, {{admin_password}}). Không hard-code mật khẩu.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://api-dev.stg.welvielearning.com"
+    },
+    {
+      "key": "admin_email",
+      "value": ""
+    },
+    {
+      "key": "admin_password",
+      "value": ""
+    },
+    {
+      "key": "access_token",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "01 Login thành công",
+      "item": [
+        {
+          "name": "Login hợp lệ và lưu access_token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{admin_email}}\",\n  \"password\": \"{{admin_password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/api/admin/auth/login",
+            "description": "Positive. Password của account này dài 8 ký tự, đúng minLength. Expected 200 theo Login response. Token lấy từ data.access_token (A4)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response = pm.response.json();",
+                  "",
+                  "pm.test('HTTP 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Content-Type chứa application/json', function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+                  "});",
+                  "",
+                  "pm.test('Envelope 200', function () {",
+                  "    pm.expect(response.message).to.be.a('string');",
+                  "    pm.expect(response.errors).to.eql(null);",
+                  "    pm.expect(response.meta).to.be.an('object');",
+                  "    pm.expect(response.data).to.be.an('object');",
+                  "});",
+                  "",
+                  "pm.test('data.access_token tồn tại và đúng kiểu', function () {",
+                  "    pm.expect(response.data.access_token).to.be.a('string').and.not.empty;",
+                  "    pm.expect(response.data.refresh_token).to.be.a('string').and.not.empty;",
+                  "    pm.expect(response.data.type_token).to.be.a('string').and.not.empty;",
+                  "    pm.expect(Number.isInteger(response.data.expires_in)).to.eql(true);",
+                  "});",
+                  "",
+                  "pm.test('Response không chứa password, hash, secretKey', function () {",
+                  "    pm.expect(response).to.not.have.property('password');",
+                  "    pm.expect(response.data).to.not.have.property('password');",
+                  "    pm.expect(response.data).to.not.have.property('hash');",
+                  "    pm.expect(response.data).to.not.have.property('secretKey');",
+                  "});",
+                  "",
+                  "const token = response.data && response.data.access_token;",
+                  "if (typeof token === 'string' && token.length > 0) {",
+                  "    pm.collectionVariables.set('access_token', token);",
+                  "    if (pm.environment.name) {",
+                  "        pm.environment.set('access_token', token);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02 Dashboard",
+      "item": [
+        {
+          "name": "Dashboard không truyền fiscal_year",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/api/admin/dashboard",
+            "description": "A10. fiscal_year optional. Expected 200 và đủ schema. Không assert năm mặc định."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('HTTP 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Content-Type chứa application/json', function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+                  "});",
+                  "",
+                  "pm.test('Envelope và các field bắt buộc của data', function () {",
+                  "    pm.expect(body.message).to.be.a('string');",
+                  "    pm.expect(body.errors).to.eql(null);",
+                  "    pm.expect(body.meta).to.be.an('object');",
+                  "    ['fiscal_year', 'available_fiscal_years', 'summary', 'trends', 'monthly_details'].forEach(function (key) {",
+                  "        pm.expect(body.data).to.have.property(key);",
+                  "    });",
+                  "    pm.expect(Number.isInteger(body.data.fiscal_year)).to.eql(true);",
+                  "    pm.expect(body.data.available_fiscal_years).to.be.an('array');",
+                  "    body.data.available_fiscal_years.forEach(function (year) {",
+                  "        pm.expect(Number.isInteger(year)).to.eql(true);",
+                  "    });",
+                  "    pm.expect(body.data).to.not.have.property('password');",
+                  "});",
+                  "",
+                  "pm.test('summary đúng kiểu', function () {",
+                  "    const summary = body.data.summary;",
+                  "    ['new_contracts', 'cancellations', 'net_increase'].forEach(function (key) {",
+                  "        pm.expect(Number.isInteger(summary[key])).to.eql(true);",
+                  "    });",
+                  "    const retention = summary.net_retention;",
+                  "    pm.expect(retention === null || typeof retention === 'number').to.eql(true);",
+                  "});",
+                  "",
+                  "pm.test('trends và monthly_details đúng cấu trúc', function () {",
+                  "    const trends = body.data.trends;",
+                  "    pm.expect(trends.monthly_contracts).to.be.an('array');",
+                  "    pm.expect(trends.monthly_staff).to.be.an('array');",
+                  "    pm.expect(body.data.monthly_details).to.be.an('array');",
+                  "    trends.monthly_contracts.forEach(function (row) {",
+                  "        ['month', 'new_contracts', 'cancellations', 'total_contracted'].forEach(function (key) {",
+                  "            pm.expect(Number.isInteger(row[key])).to.eql(true);",
+                  "        });",
+                  "    });",
+                  "    trends.monthly_staff.forEach(function (row) {",
+                  "        ['month', 'new_staff', 'total_staff'].forEach(function (key) {",
+                  "            pm.expect(Number.isInteger(row[key])).to.eql(true);",
+                  "        });",
+                  "    });",
+                  "    body.data.monthly_details.forEach(function (row) {",
+                  "        ['month', 'new', 'trial', 'cancellation', 'net_increase', 'contracting_companies', 'registered_staff', 'contracted_accounts'].forEach(function (key) {",
+                  "            pm.expect(Number.isInteger(row[key])).to.eql(true);",
+                  "        });",
+                  "    });",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Dashboard fiscal_year = 2016",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/api/admin/dashboard?fiscal_year=2016",
+            "description": "A8. Biên dưới của fiscal_year. Expected 200 và data.fiscal_year = 2016."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('HTTP 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Content-Type chứa application/json', function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+                  "});",
+                  "",
+                  "pm.test('Envelope và các field bắt buộc của data', function () {",
+                  "    pm.expect(body.message).to.be.a('string');",
+                  "    pm.expect(body.errors).to.eql(null);",
+                  "    pm.expect(body.meta).to.be.an('object');",
+                  "    ['fiscal_year', 'available_fiscal_years', 'summary', 'trends', 'monthly_details'].forEach(function (key) {",
+                  "        pm.expect(body.data).to.have.property(key);",
+                  "    });",
+                  "    pm.expect(body.data.available_fiscal_years).to.be.an('array');",
+                  "    pm.expect(body.data.trends.monthly_contracts).to.be.an('array');",
+                  "    pm.expect(body.data.trends.monthly_staff).to.be.an('array');",
+                  "    pm.expect(body.data.monthly_details).to.be.an('array');",
+                  "    ['new_contracts', 'cancellations', 'net_increase'].forEach(function (key) {",
+                  "        pm.expect(Number.isInteger(body.data.summary[key])).to.eql(true);",
+                  "    });",
+                  "    const retention = body.data.summary.net_retention;",
+                  "    pm.expect(retention === null || typeof retention === 'number').to.eql(true);",
+                  "});",
+                  "",
+                  "pm.test('data.fiscal_year bằng 2016', function () {",
+                  "    pm.expect(body.data.fiscal_year).to.eql(2016);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Dashboard fiscal_year = 2026",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/api/admin/dashboard?fiscal_year=2026",
+            "description": "A8. Biên trên của fiscal_year. Expected 200 và data.fiscal_year = 2026."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('HTTP 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Content-Type chứa application/json', function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+                  "});",
+                  "",
+                  "pm.test('Envelope và các field bắt buộc của data', function () {",
+                  "    pm.expect(body.message).to.be.a('string');",
+                  "    pm.expect(body.errors).to.eql(null);",
+                  "    pm.expect(body.meta).to.be.an('object');",
+                  "    ['fiscal_year', 'available_fiscal_years', 'summary', 'trends', 'monthly_details'].forEach(function (key) {",
+                  "        pm.expect(body.data).to.have.property(key);",
+                  "    });",
+                  "    pm.expect(body.data.available_fiscal_years).to.be.an('array');",
+                  "    pm.expect(body.data.trends.monthly_contracts).to.be.an('array');",
+                  "    pm.expect(body.data.trends.monthly_staff).to.be.an('array');",
+                  "    pm.expect(body.data.monthly_details).to.be.an('array');",
+                  "    ['new_contracts', 'cancellations', 'net_increase'].forEach(function (key) {",
+                  "        pm.expect(Number.isInteger(body.data.summary[key])).to.eql(true);",
+                  "    });",
+                  "    const retention = body.data.summary.net_retention;",
+                  "    pm.expect(retention === null || typeof retention === 'number').to.eql(true);",
+                  "});",
+                  "",
+                  "pm.test('data.fiscal_year bằng 2026', function () {",
+                  "    pm.expect(body.data.fiscal_year).to.eql(2026);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Dashboard fiscal_year = 2015",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/api/admin/dashboard?fiscal_year=2015",
+            "description": "A9. Thấp hơn minimum 2016. Expected 422 ValidationException."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('HTTP 422', function () {",
+                  "    pm.response.to.have.status(422);",
+                  "});",
+                  "",
+                  "pm.test('Content-Type chứa application/json', function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+                  "});",
+                  "",
+                  "pm.test('ValidationException', function () {",
+                  "    pm.expect(body.message).to.be.a('string');",
+                  "    pm.expect(body.errors).to.be.an('object');",
+                  "    pm.expect(Array.isArray(body.errors)).to.eql(false);",
+                  "    pm.expect(body.data).to.eql(null);",
+                  "    pm.expect(body.meta).to.be.an('object');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Dashboard fiscal_year = 2027",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/api/admin/dashboard?fiscal_year=2027",
+            "description": "A9. Cao hơn maximum 2026. Expected 422 ValidationException."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('HTTP 422', function () {",
+                  "    pm.response.to.have.status(422);",
+                  "});",
+                  "",
+                  "pm.test('Content-Type chứa application/json', function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+                  "});",
+                  "",
+                  "pm.test('ValidationException', function () {",
+                  "    pm.expect(body.message).to.be.a('string');",
+                  "    pm.expect(body.errors).to.be.an('object');",
+                  "    pm.expect(Array.isArray(body.errors)).to.eql(false);",
+                  "    pm.expect(body.data).to.eql(null);",
+                  "    pm.expect(body.meta).to.be.an('object');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Dashboard fiscal_year không phải số",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/api/admin/dashboard?fiscal_year=abc",
+            "description": "fiscal_year schema là integer. Giá trị abc. Expected 422 ValidationException."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('HTTP 422', function () {",
+                  "    pm.response.to.have.status(422);",
+                  "});",
+                  "",
+                  "pm.test('Content-Type chứa application/json', function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+                  "});",
+                  "",
+                  "pm.test('ValidationException', function () {",
+                  "    pm.expect(body.message).to.be.a('string');",
+                  "    pm.expect(body.errors).to.be.an('object');",
+                  "    pm.expect(Array.isArray(body.errors)).to.eql(false);",
+                  "    pm.expect(body.data).to.eql(null);",
+                  "    pm.expect(body.meta).to.be.an('object');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Dashboard không gửi token",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{base_url}}/api/admin/dashboard",
+            "description": "A11. Security bearer của spec. Không gửi Authorization. Expected 401 AuthenticationException."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('HTTP 401', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  "",
+                  "pm.test('Content-Type chứa application/json', function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+                  "});",
+                  "",
+                  "pm.test('AuthenticationException', function () {",
+                  "    pm.expect(body.message).to.be.a('string');",
+                  "    pm.expect(body.errors).to.eql(null);",
+                  "    pm.expect(body.data).to.eql(null);",
+                  "    pm.expect(body.meta).to.be.an('object');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Dashboard token không hợp lệ",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "invalid-token",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/api/admin/dashboard",
+            "description": "A11. Bearer không phải token vừa login. Expected 401 AuthenticationException."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('HTTP 401', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  "",
+                  "pm.test('Content-Type chứa application/json', function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+                  "});",
+                  "",
+                  "pm.test('AuthenticationException', function () {",
+                  "    pm.expect(body.message).to.be.a('string');",
+                  "    pm.expect(body.errors).to.eql(null);",
+                  "    pm.expect(body.data).to.eql(null);",
+                  "    pm.expect(body.meta).to.be.an('object');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03 Login validation và credential sai",
+      "item": [
+        {
+          "name": "Login thiếu email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"Password1\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/api/admin/auth/login",
+            "description": "A1. email required. Expected 422 ValidationException."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('HTTP 422', function () {",
+                  "    pm.response.to.have.status(422);",
+                  "});",
+                  "",
+                  "pm.test('Content-Type chứa application/json', function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+                  "});",
+                  "",
+                  "pm.test('ValidationException', function () {",
+                  "    pm.expect(body.message).to.be.a('string');",
+                  "    pm.expect(body.errors).to.be.an('object');",
+                  "    pm.expect(Array.isArray(body.errors)).to.eql(false);",
+                  "    pm.expect(body.data).to.eql(null);",
+                  "    pm.expect(body.meta).to.be.an('object');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login thiếu password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"unknown.admin.qa@example.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/api/admin/auth/login",
+            "description": "A1. password required. Expected 422 ValidationException."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('HTTP 422', function () {",
+                  "    pm.response.to.have.status(422);",
+                  "});",
+                  "",
+                  "pm.test('Content-Type chứa application/json', function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+                  "});",
+                  "",
+                  "pm.test('ValidationException', function () {",
+                  "    pm.expect(body.message).to.be.a('string');",
+                  "    pm.expect(body.errors).to.be.an('object');",
+                  "    pm.expect(Array.isArray(body.errors)).to.eql(false);",
+                  "    pm.expect(body.data).to.eql(null);",
+                  "    pm.expect(body.meta).to.be.an('object');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login email sai format",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"not-an-email\",\n  \"password\": \"Password1\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/api/admin/auth/login",
+            "description": "A1. email format email. Giá trị not-an-email. Expected 422 ValidationException."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('HTTP 422', function () {",
+                  "    pm.response.to.have.status(422);",
+                  "});",
+                  "",
+                  "pm.test('Content-Type chứa application/json', function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+                  "});",
+                  "",
+                  "pm.test('ValidationException', function () {",
+                  "    pm.expect(body.message).to.be.a('string');",
+                  "    pm.expect(body.errors).to.be.an('object');",
+                  "    pm.expect(Array.isArray(body.errors)).to.eql(false);",
+                  "    pm.expect(body.data).to.eql(null);",
+                  "    pm.expect(body.meta).to.be.an('object');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login email dài hơn 255",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const email = 'a'.repeat(64) + '@' + 'b'.repeat(63) + '.' + 'b'.repeat(63) + '.' + 'b'.repeat(59) + '.com';",
+                  "pm.variables.set('email_len_256', email);",
+                  "if (email.length !== 256) { throw new Error('email_len_256 must be 256'); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('HTTP 422', function () {",
+                  "    pm.response.to.have.status(422);",
+                  "});",
+                  "",
+                  "pm.test('Content-Type chứa application/json', function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+                  "});",
+                  "",
+                  "pm.test('ValidationException', function () {",
+                  "    pm.expect(body.message).to.be.a('string');",
+                  "    pm.expect(body.errors).to.be.an('object');",
+                  "    pm.expect(Array.isArray(body.errors)).to.eql(false);",
+                  "    pm.expect(body.data).to.eql(null);",
+                  "    pm.expect(body.meta).to.be.an('object');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email_len_256}}\",\n  \"password\": \"Password1\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/api/admin/auth/login",
+            "description": "A1. email maxLength 255. Chuỗi 256 ký tự có dạng email. Expected 422 ValidationException."
+          }
+        },
+        {
+          "name": "Login email đúng 255 ký tự và không tồn tại",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const email = 'a'.repeat(64) + '@' + 'b'.repeat(63) + '.' + 'b'.repeat(63) + '.' + 'b'.repeat(58) + '.com';",
+                  "pm.variables.set('email_len_255', email);",
+                  "if (email.length !== 255) { throw new Error('email_len_255 must be 255'); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('HTTP 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Content-Type chứa application/json', function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+                  "});",
+                  "",
+                  "pm.test('InputException', function () {",
+                  "    pm.expect(body.message).to.be.a('string');",
+                  "    pm.expect(body.errors).to.eql(null);",
+                  "    pm.expect(body.data).to.eql(null);",
+                  "    pm.expect(body.meta).to.be.an('object');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email_len_255}}\",\n  \"password\": \"Password1\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/api/admin/auth/login",
+            "description": "Biên maxLength 255, cú pháp email, account không tồn tại. A2: Expected 400 InputException."
+          }
+        },
+        {
+          "name": "Login password 7 ký tự",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{admin_email}}\",\n  \"password\": \"test123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/api/admin/auth/login",
+            "description": "A1. password minLength 8. Giá trị test123 dài 7. Expected 422 ValidationException."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('HTTP 422', function () {",
+                  "    pm.response.to.have.status(422);",
+                  "});",
+                  "",
+                  "pm.test('Content-Type chứa application/json', function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+                  "});",
+                  "",
+                  "pm.test('ValidationException', function () {",
+                  "    pm.expect(body.message).to.be.a('string');",
+                  "    pm.expect(body.errors).to.be.an('object');",
+                  "    pm.expect(Array.isArray(body.errors)).to.eql(false);",
+                  "    pm.expect(body.data).to.eql(null);",
+                  "    pm.expect(body.meta).to.be.an('object');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login password 256 ký tự",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const password = 'a'.repeat(256);",
+                  "pm.variables.set('password_len_256', password);",
+                  "if (password.length !== 256) { throw new Error('password_len_256 must be 256'); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('HTTP 422', function () {",
+                  "    pm.response.to.have.status(422);",
+                  "});",
+                  "",
+                  "pm.test('Content-Type chứa application/json', function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+                  "});",
+                  "",
+                  "pm.test('ValidationException', function () {",
+                  "    pm.expect(body.message).to.be.a('string');",
+                  "    pm.expect(body.errors).to.be.an('object');",
+                  "    pm.expect(Array.isArray(body.errors)).to.eql(false);",
+                  "    pm.expect(body.data).to.eql(null);",
+                  "    pm.expect(body.meta).to.be.an('object');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{admin_email}}\",\n  \"password\": \"{{password_len_256}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/api/admin/auth/login",
+            "description": "A1. password maxLength 255. Chuỗi 256 ký tự. Expected 422 ValidationException."
+          }
+        },
+        {
+          "name": "Login password đúng 255 ký tự nhưng sai",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const password = 'b'.repeat(255);",
+                  "pm.variables.set('password_len_255', password);",
+                  "if (password.length !== 255) { throw new Error('password_len_255 must be 255'); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('HTTP 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Content-Type chứa application/json', function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+                  "});",
+                  "",
+                  "pm.test('InputException', function () {",
+                  "    pm.expect(body.message).to.be.a('string');",
+                  "    pm.expect(body.errors).to.eql(null);",
+                  "    pm.expect(body.data).to.eql(null);",
+                  "    pm.expect(body.meta).to.be.an('object');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{admin_email}}\",\n  \"password\": \"{{password_len_255}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/api/admin/auth/login",
+            "description": "Biên maxLength 255 của password, giá trị không phải mật khẩu thật. A2: Expected 400 InputException."
+          }
+        },
+        {
+          "name": "Login sai password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{admin_email}}\",\n  \"password\": \"Wrongpass1\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/api/admin/auth/login",
+            "description": "A2. Email account thật, password Wrongpass1 đúng độ dài và khác mật khẩu thật. Expected 400 InputException."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('HTTP 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Content-Type chứa application/json', function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+                  "});",
+                  "",
+                  "pm.test('InputException', function () {",
+                  "    pm.expect(body.message).to.be.a('string');",
+                  "    pm.expect(body.errors).to.eql(null);",
+                  "    pm.expect(body.data).to.eql(null);",
+                  "    pm.expect(body.meta).to.be.an('object');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login email không tồn tại",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"unknown.admin.qa@example.com\",\n  \"password\": \"Password1\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/api/admin/auth/login",
+            "description": "A2. Email đúng format, account không tồn tại, password đúng độ dài. Expected 400 InputException."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('HTTP 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Content-Type chứa application/json', function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+                  "});",
+                  "",
+                  "pm.test('InputException', function () {",
+                  "    pm.expect(body.message).to.be.a('string');",
+                  "    pm.expect(body.errors).to.eql(null);",
+                  "    pm.expect(body.data).to.eql(null);",
+                  "    pm.expect(body.meta).to.be.an('object');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
