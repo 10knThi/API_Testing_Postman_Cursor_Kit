@@ -52,3 +52,4 @@ Nguyên tắc phân tách: **business-knowledge** chỉ chứa sự thật về 
 - BD gốc trong `basic design/` là read-only. Mọi diễn giải đặt trong `business-knowledge/` kèm trích dẫn (tên sheet + No. của item).
 - Không commit mật khẩu / token vào repo. Xem quy ước ở `test-knowledge/environment-and-accounts.md`.
 - Thêm file mới → thêm một dòng vào bảng tương ứng ở trên, nếu không thì coi như file đó không tồn tại.
+sửa lại commit
