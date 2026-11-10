@@ -1,0 +1,1323 @@
+{
+  "info": {
+    "_postman_id": "b7e2c4a1-8d63-4f0a-91b5-3c7e9a2d5f18",
+    "name": "Welvie - Update User API",
+    "description": "Test API `PUT /api/admin/users/{user}` (portal System admin). Login chỉ để lấy token.\n\nNguồn expected: API DOC `basic design/document.json` — UpdateUserRequest; response 200 (data object user) / 401 / 403 / 404 / 422. GET `/api/admin/users/{user}` dùng xác nhận (UU09).\n\nAssumption đã chốt (2026/11/09):\nUU01 user QA `user_id` (STG = 246), snapshot TC_001, restore TC_029–030.\nUU02 không test đổi 法人; tenant trên response giữ nguyên.\nUU03 giữ branch gốc; branch_id không tồn tại → 422; không test cross-tenant.\nUU04 giữ tag gốc; target_tag_id không tồn tại → 422.\nUU05 email / phone = null → 200; email sai format / phone 9 hoặc 12 → 422; không test unique.\nUU06 name 255 → 200, 256 → 422; không test name rỗng.\nUU07 không gửi / không test locked.\nUU08 admin được sửa; viewer → 403.\nUU09 assert data PUT + GET; không assert message text.\nUU10 token = `data.access_token`, collection variable `access_token`.\nUU11 PUT trùng body → 200.\nUU12 user 999999999 → 404.\nUU13 collection chỉ Login (2 request) + Update User.\n\nCách chạy: Import file này + `welvie-stg.postman_environment.json` → chọn Welvie STG → Run collection theo thứ tự folder.\n\nNếu run dừng trước folder 07, user 246 có thể còn data test — chạy lại TC_029 (khi còn `uu_base`) hoặc sửa tay.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }]
+  },
+  "variable": [
+    { "key": "access_token", "value": "" },
+    { "key": "viewer_access_token", "value": "" },
+    { "key": "uu_base", "value": "" },
+    { "key": "uu_sent", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "01. Auth - Lấy token",
+      "item": [
+        {
+          "name": "WELVIE_UPDATEUSER_LOGIN_001 - Đăng nhập admin và lưu access_token",
+          "auth": { "type": "noauth" },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.unset('access_token');",
+                  "pm.environment.unset('access_token');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.test('errors null; data.access_token là string', () => {",
+                  "  pm.expect(j.errors).to.be.null;",
+                  "  pm.expect(j.data.access_token).to.be.a('string').and.not.empty;",
+                  "});",
+                  "if (j.data && j.data.access_token) {",
+                  "  pm.collectionVariables.set('access_token', j.data.access_token);",
+                  "  pm.environment.set('access_token', j.data.access_token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{admin_email}}\",\n  \"password\": \"{{admin_password}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{base_url}}/api/admin/auth/login", "host": ["{{base_url}}"], "path": ["api", "admin", "auth", "login"] },
+            "description": "Rule area: Auth dependency.\nNguồn: API DOC login 200; UU10 — token ở `data.access_token`."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATEUSER_LOGIN_002 - Viewer login và lưu viewer_access_token",
+          "auth": { "type": "noauth" },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.unset('viewer_access_token');",
+                  "pm.environment.unset('viewer_access_token');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.test('errors null; data.access_token là string', () => {",
+                  "  pm.expect(j.errors).to.be.null;",
+                  "  pm.expect(j.data.access_token).to.be.a('string').and.not.empty;",
+                  "});",
+                  "if (j.data && j.data.access_token) {",
+                  "  pm.collectionVariables.set('viewer_access_token', j.data.access_token);",
+                  "  pm.environment.set('viewer_access_token', j.data.access_token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{viewer_email}}\",\n  \"password\": \"{{viewer_password}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{base_url}}/api/admin/auth/login", "host": ["{{base_url}}"], "path": ["api", "admin", "auth", "login"] },
+            "description": "Rule area: Permission dependency (UU08).\nNguồn: API DOC login 200. Token viewer cho case 403."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "02. Update User - Chuẩn bị (snapshot)",
+      "item": [
+        {
+          "name": "WELVIE_UPDATEUSER_TC_001 - GET user {{user_id}} và lưu giá trị gốc (uu_base)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.unset('uu_base');",
+                  "pm.environment.unset('uu_base');",
+                  "pm.collectionVariables.unset('uu_sent');",
+                  "pm.environment.unset('uu_sent');",
+                  "if (!(pm.collectionVariables.get('access_token') || pm.environment.get('access_token')) || !pm.environment.get('user_id')) {",
+                  "  console.log('SKIP UPDATEUSER_TC_001: thiếu access_token hoặc user_id');",
+                  "  pm.execution.skipRequest();",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const d = (pm.response.json().data) || {};",
+                  "pm.test('data có field dựng body PUT', () => pm.expect(d).to.include.all.keys('id', 'name', 'email', 'phone', 'branch', 'target_tag', 'tenant'));",
+                  "pm.test('id đúng user_id', () => pm.expect(String(d.id)).to.eql(String(pm.environment.get('user_id'))));",
+                  "pm.test('branch.id và target_tag.id tồn tại (UU03, UU04)', () => {",
+                  "  pm.expect(d.branch && d.branch.id).to.be.a('number');",
+                  "  pm.expect(d.target_tag && d.target_tag.id).to.be.a('number');",
+                  "});",
+                  "if (pm.response.code === 200 && d.branch && d.target_tag) {",
+                  "  const base = {",
+                  "    name: d.name,",
+                  "    email: d.email == null ? null : d.email,",
+                  "    phone: d.phone == null ? null : d.phone,",
+                  "    branch_id: d.branch.id,",
+                  "    target_tag_id: d.target_tag.id,",
+                  "    tenant_id: d.tenant ? d.tenant.id : null",
+                  "  };",
+                  "  const s = JSON.stringify(base);",
+                  "  pm.collectionVariables.set('uu_base', s);",
+                  "  pm.environment.set('uu_base', s);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "inherit" },
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/admin/users/{{user_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "users", "{{user_id}}"] },
+            "description": "Rule area: Dependency / Data.\nNguồn: API DOC GET show 200; UU01 snapshot. Body PUT lấy name / email / phone / branch.id / target_tag.id. tenant_id chỉ lưu để assert UU02, không gửi lên PUT."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "03. Update User - Positive / Data / Duplicate",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (!(pm.collectionVariables.get('access_token') || pm.environment.get('access_token')) || !(pm.collectionVariables.get('uu_base') || pm.environment.get('uu_base'))) {",
+              "  console.log('SKIP ' + pm.info.requestName + ': thiếu access_token hoặc uu_base');",
+              "  pm.execution.skipRequest();",
+              "}"
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "name": "WELVIE_UPDATEUSER_TC_002 - Cập nhật name, giữ branch / tag / email / phone",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const raw = JSON.parse(pm.collectionVariables.get('uu_base') || pm.environment.get('uu_base') || '{}');",
+                  "const b = { name: 'QA API User 更新 ' + pm.environment.get('user_id'), email: raw.email, phone: raw.phone, branch_id: raw.branch_id, target_tag_id: raw.target_tag_id };",
+                  "const s = JSON.stringify(b);",
+                  "pm.variables.set('uu_body', s);",
+                  "pm.collectionVariables.set('uu_sent', s);",
+                  "pm.environment.set('uu_sent', s);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "const s = JSON.parse(pm.collectionVariables.get('uu_sent') || pm.environment.get('uu_sent') || '{}');",
+                  "const base = JSON.parse(pm.collectionVariables.get('uu_base') || pm.environment.get('uu_base') || '{}');",
+                  "pm.test('Envelope: message string, errors null, data object', () => {",
+                  "  pm.expect(j).to.include.all.keys('message', 'errors', 'data', 'meta');",
+                  "  pm.expect(j.message).to.be.a('string');",
+                  "  pm.expect(j.errors).to.be.null;",
+                  "  pm.expect(j.data).to.be.an('object');",
+                  "});",
+                  "pm.test('data.id / name / email / phone / branch / tag khớp', () => {",
+                  "  pm.expect(String(j.data.id)).to.eql(String(pm.environment.get('user_id')));",
+                  "  pm.expect(j.data.name).to.eql(s.name);",
+                  "  pm.expect(j.data.email).to.eql(s.email);",
+                  "  pm.expect(j.data.phone).to.eql(s.phone);",
+                  "  pm.expect(j.data.branch && j.data.branch.id).to.eql(s.branch_id);",
+                  "  pm.expect(j.data.target_tag && j.data.target_tag.id).to.eql(s.target_tag_id);",
+                  "});",
+                  "pm.test('tenant giữ nguyên (UU02)', () => pm.expect(j.data.tenant && j.data.tenant.id).to.eql(base.tenant_id));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "inherit" },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{{uu_body}}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/api/admin/users/{{user_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "users", "{{user_id}}"] },
+            "description": "Rule area: Positive / Response.\nNguồn: API DOC UpdateUserRequest + 200 data object.\nTest data: name `QA API User 更新 {user_id}`; email / phone / branch_id / target_tag_id giữ snapshot. Không gửi locked (UU07)."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATEUSER_TC_003 - GET xác nhận dữ liệu TC_002 đã được lưu",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const d = pm.response.json().data || {};",
+                  "const s = JSON.parse(pm.collectionVariables.get('uu_sent') || pm.environment.get('uu_sent') || '{}');",
+                  "const base = JSON.parse(pm.collectionVariables.get('uu_base') || pm.environment.get('uu_base') || '{}');",
+                  "pm.test('name / email / phone / branch / tag đã lưu', () => {",
+                  "  pm.expect(d.name).to.eql(s.name);",
+                  "  pm.expect(d.email).to.eql(s.email);",
+                  "  pm.expect(d.phone).to.eql(s.phone);",
+                  "  pm.expect(d.branch && d.branch.id).to.eql(s.branch_id);",
+                  "  pm.expect(d.target_tag && d.target_tag.id).to.eql(s.target_tag_id);",
+                  "});",
+                  "pm.test('tenant giữ nguyên (UU02)', () => pm.expect(d.tenant && d.tenant.id).to.eql(base.tenant_id));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "inherit" },
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/admin/users/{{user_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "users", "{{user_id}}"] },
+            "description": "Rule area: Data.\nNguồn: UU09."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATEUSER_TC_004 - Gửi lại đúng body TC_002 lần 2 vẫn 200",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('uu_body', pm.collectionVariables.get('uu_sent') || pm.environment.get('uu_sent') || '{}');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "const s = JSON.parse(pm.collectionVariables.get('uu_sent') || pm.environment.get('uu_sent') || '{}');",
+                  "pm.test('errors null; data.name không đổi', () => {",
+                  "  pm.expect(j.errors).to.be.null;",
+                  "  pm.expect(j.data.name).to.eql(s.name);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "inherit" },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{{uu_body}}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/api/admin/users/{{user_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "users", "{{user_id}}"] },
+            "description": "Rule area: Duplicate / Idempotency.\nNguồn: UU11."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATEUSER_TC_005 - GET xác nhận dữ liệu không đổi sau lần PUT thứ 2",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const d = pm.response.json().data || {};",
+                  "const s = JSON.parse(pm.collectionVariables.get('uu_sent') || pm.environment.get('uu_sent') || '{}');",
+                  "pm.test('name / email / phone không đổi', () => {",
+                  "  pm.expect(d.name).to.eql(s.name);",
+                  "  pm.expect(d.email).to.eql(s.email);",
+                  "  pm.expect(d.phone).to.eql(s.phone);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "inherit" },
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/admin/users/{{user_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "users", "{{user_id}}"] },
+            "description": "Rule area: Duplicate / Data.\nNguồn: UU09 + UU11."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATEUSER_TC_006 - email và phone = null → 200",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const raw = JSON.parse(pm.collectionVariables.get('uu_base') || pm.environment.get('uu_base') || '{}');",
+                  "const b = { name: raw.name, email: null, phone: null, branch_id: raw.branch_id, target_tag_id: raw.target_tag_id };",
+                  "const s = JSON.stringify(b);",
+                  "pm.variables.set('uu_body', s);",
+                  "pm.collectionVariables.set('uu_sent', s);",
+                  "pm.environment.set('uu_sent', s);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.test('errors null; email và phone = null', () => {",
+                  "  pm.expect(j.errors).to.be.null;",
+                  "  pm.expect(j.data.email).to.be.null;",
+                  "  pm.expect(j.data.phone).to.be.null;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "inherit" },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{{uu_body}}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/api/admin/users/{{user_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "users", "{{user_id}}"] },
+            "description": "Rule area: Validation (nullable).\nNguồn: API DOC email/phone [string, null]; UU05."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATEUSER_TC_007 - GET xác nhận email và phone đã thành null",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const d = pm.response.json().data || {};",
+                  "pm.test('email = null', () => pm.expect(d.email).to.be.null);",
+                  "pm.test('phone = null', () => pm.expect(d.phone).to.be.null);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "inherit" },
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/admin/users/{{user_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "users", "{{user_id}}"] },
+            "description": "Rule area: Data.\nNguồn: UU05 + UU09."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "04. Update User - Boundary hợp lệ",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (!(pm.collectionVariables.get('access_token') || pm.environment.get('access_token')) || !(pm.collectionVariables.get('uu_base') || pm.environment.get('uu_base'))) {",
+              "  console.log('SKIP ' + pm.info.requestName + ': thiếu access_token hoặc uu_base');",
+              "  pm.execution.skipRequest();",
+              "}"
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "name": "WELVIE_UPDATEUSER_TC_008 - name 255 ký tự (max)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const raw = JSON.parse(pm.collectionVariables.get('uu_base') || pm.environment.get('uu_base') || '{}');",
+                  "const b = { name: 'QA' + 'n'.repeat(253), email: raw.email, phone: raw.phone, branch_id: raw.branch_id, target_tag_id: raw.target_tag_id };",
+                  "const s = JSON.stringify(b);",
+                  "pm.variables.set('uu_body', s);",
+                  "pm.collectionVariables.set('uu_sent', s);",
+                  "pm.environment.set('uu_sent', s);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('name gửi đi dài đúng 255', () => pm.expect(JSON.parse(pm.variables.get('uu_body')).name.length).to.eql(255));",
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('data.name dài 255', () => pm.expect(pm.response.json().data.name.length).to.eql(255));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "inherit" },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{{uu_body}}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/api/admin/users/{{user_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "users", "{{user_id}}"] },
+            "description": "Rule area: Boundary (max hợp lệ).\nNguồn: API DOC name.maxLength = 255; UU06."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATEUSER_TC_009 - GET xác nhận name 255 ký tự được lưu nguyên vẹn",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const d = pm.response.json().data || {};",
+                  "const s = JSON.parse(pm.collectionVariables.get('uu_sent') || pm.environment.get('uu_sent') || '{}');",
+                  "pm.test('name lưu đủ 255 ký tự', () => pm.expect(d.name).to.eql(s.name));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "inherit" },
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/admin/users/{{user_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "users", "{{user_id}}"] },
+            "description": "Rule area: Data / Boundary.\nNguồn: UU06 + UU09."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATEUSER_TC_010 - phone 10 ký tự (min)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const raw = JSON.parse(pm.collectionVariables.get('uu_base') || pm.environment.get('uu_base') || '{}');",
+                  "const b = { name: raw.name, email: raw.email, phone: '0901234567', branch_id: raw.branch_id, target_tag_id: raw.target_tag_id };",
+                  "const s = JSON.stringify(b);",
+                  "pm.variables.set('uu_body', s);",
+                  "pm.collectionVariables.set('uu_sent', s);",
+                  "pm.environment.set('uu_sent', s);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('data.phone = 0901234567', () => pm.expect(pm.response.json().data.phone).to.eql('0901234567'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "inherit" },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{{uu_body}}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/api/admin/users/{{user_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "users", "{{user_id}}"] },
+            "description": "Rule area: Boundary (min hợp lệ).\nNguồn: API DOC phone.minLength = 10. Test data: `0901234567`."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATEUSER_TC_011 - phone 11 ký tự (max)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const raw = JSON.parse(pm.collectionVariables.get('uu_base') || pm.environment.get('uu_base') || '{}');",
+                  "const b = { name: raw.name, email: raw.email, phone: '09012345678', branch_id: raw.branch_id, target_tag_id: raw.target_tag_id };",
+                  "const s = JSON.stringify(b);",
+                  "pm.variables.set('uu_body', s);",
+                  "pm.collectionVariables.set('uu_sent', s);",
+                  "pm.environment.set('uu_sent', s);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('data.phone = 09012345678', () => pm.expect(pm.response.json().data.phone).to.eql('09012345678'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "inherit" },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{{uu_body}}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/api/admin/users/{{user_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "users", "{{user_id}}"] },
+            "description": "Rule area: Boundary (max hợp lệ).\nNguồn: API DOC phone.maxLength = 11. Test data: `09012345678`."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATEUSER_TC_012 - GET xác nhận phone 11 ký tự đã được lưu",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const d = pm.response.json().data || {};",
+                  "const s = JSON.parse(pm.collectionVariables.get('uu_sent') || pm.environment.get('uu_sent') || '{}');",
+                  "pm.test('phone khớp lần PUT gần nhất', () => pm.expect(d.phone).to.eql(s.phone));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "inherit" },
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/admin/users/{{user_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "users", "{{user_id}}"] },
+            "description": "Rule area: Data.\nNguồn: UU09."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "05. Update User - Validation (422)",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (!(pm.collectionVariables.get('access_token') || pm.environment.get('access_token')) || !(pm.collectionVariables.get('uu_base') || pm.environment.get('uu_base'))) {",
+              "  console.log('SKIP ' + pm.info.requestName + ': thiếu access_token hoặc uu_base');",
+              "  pm.execution.skipRequest();",
+              "}"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.request.method === 'PUT') {",
+              "  const f = pm.variables.get('uu_err_field');",
+              "  pm.test('Status 422', () => pm.response.to.have.status(422));",
+              "  const j = pm.response.json();",
+              "  pm.test('Envelope ValidationException: message string, errors object, data null', () => {",
+              "    pm.expect(j).to.include.all.keys('message', 'errors', 'data', 'meta');",
+              "    pm.expect(j.message).to.be.a('string');",
+              "    pm.expect(j.errors).to.be.an('object');",
+              "    pm.expect(j.data).to.be.null;",
+              "  });",
+              "  if (f) {",
+              "    pm.test('errors có lỗi cho field ' + f, () => {",
+              "      const keys = Object.keys(j.errors || {});",
+              "      pm.expect(keys.some(k => k === f || k.startsWith(f + '.')), 'errors keys: ' + keys.join(', ')).to.be.true;",
+              "    });",
+              "  }",
+              "}"
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "name": "WELVIE_UPDATEUSER_TC_013 - Thiếu field name",
+          "event": [{ "listen": "prerequest", "script": { "type": "text/javascript", "exec": [
+            "const raw = JSON.parse(pm.collectionVariables.get('uu_base') || pm.environment.get('uu_base') || '{}');",
+            "const b = { email: raw.email, phone: raw.phone, branch_id: raw.branch_id, target_tag_id: raw.target_tag_id };",
+            "pm.variables.set('uu_err_field', 'name');",
+            "pm.variables.set('uu_body', JSON.stringify(b));"
+          ] } },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const f = pm.variables.get('uu_err_field');",
+                  "pm.test('Status 422', () => pm.response.to.have.status(422));",
+                  "const j = pm.response.json();",
+                  "pm.test('Envelope ValidationException: message string, errors object, data null', () => {",
+                  "  pm.expect(j).to.include.all.keys('message', 'errors', 'data', 'meta');",
+                  "  pm.expect(j.message).to.be.a('string');",
+                  "  pm.expect(j.errors).to.be.an('object');",
+                  "  pm.expect(j.data).to.be.null;",
+                  "});",
+                  "if (f) {",
+                  "  pm.test('errors có lỗi cho field ' + f, () => {",
+                  "    const keys = Object.keys(j.errors || {});",
+                  "    pm.expect(keys.some(k => k === f || k.startsWith(f + '.')), 'errors keys: ' + keys.join(', ')).to.be.true;",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "inherit" },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{{uu_body}}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/api/admin/users/{{user_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "users", "{{user_id}}"] },
+            "description": "Rule area: Validation (required).\nNguồn: API DOC UpdateUserRequest.required có `name`; 422."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATEUSER_TC_014 - Thiếu field branch_id",
+          "event": [{ "listen": "prerequest", "script": { "type": "text/javascript", "exec": [
+            "const raw = JSON.parse(pm.collectionVariables.get('uu_base') || pm.environment.get('uu_base') || '{}');",
+            "const b = { name: raw.name, email: raw.email, phone: raw.phone, target_tag_id: raw.target_tag_id };",
+            "pm.variables.set('uu_err_field', 'branch_id');",
+            "pm.variables.set('uu_body', JSON.stringify(b));"
+          ] } },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const f = pm.variables.get('uu_err_field');",
+                  "pm.test('Status 422', () => pm.response.to.have.status(422));",
+                  "const j = pm.response.json();",
+                  "pm.test('Envelope ValidationException: message string, errors object, data null', () => {",
+                  "  pm.expect(j).to.include.all.keys('message', 'errors', 'data', 'meta');",
+                  "  pm.expect(j.message).to.be.a('string');",
+                  "  pm.expect(j.errors).to.be.an('object');",
+                  "  pm.expect(j.data).to.be.null;",
+                  "});",
+                  "if (f) {",
+                  "  pm.test('errors có lỗi cho field ' + f, () => {",
+                  "    const keys = Object.keys(j.errors || {});",
+                  "    pm.expect(keys.some(k => k === f || k.startsWith(f + '.')), 'errors keys: ' + keys.join(', ')).to.be.true;",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "inherit" },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{{uu_body}}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/api/admin/users/{{user_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "users", "{{user_id}}"] },
+            "description": "Rule area: Validation (required).\nNguồn: API DOC required có `branch_id`; 422."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATEUSER_TC_015 - Thiếu field target_tag_id",
+          "event": [{ "listen": "prerequest", "script": { "type": "text/javascript", "exec": [
+            "const raw = JSON.parse(pm.collectionVariables.get('uu_base') || pm.environment.get('uu_base') || '{}');",
+            "const b = { name: raw.name, email: raw.email, phone: raw.phone, branch_id: raw.branch_id };",
+            "pm.variables.set('uu_err_field', 'target_tag_id');",
+            "pm.variables.set('uu_body', JSON.stringify(b));"
+          ] } },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const f = pm.variables.get('uu_err_field');",
+                  "pm.test('Status 422', () => pm.response.to.have.status(422));",
+                  "const j = pm.response.json();",
+                  "pm.test('Envelope ValidationException: message string, errors object, data null', () => {",
+                  "  pm.expect(j).to.include.all.keys('message', 'errors', 'data', 'meta');",
+                  "  pm.expect(j.message).to.be.a('string');",
+                  "  pm.expect(j.errors).to.be.an('object');",
+                  "  pm.expect(j.data).to.be.null;",
+                  "});",
+                  "if (f) {",
+                  "  pm.test('errors có lỗi cho field ' + f, () => {",
+                  "    const keys = Object.keys(j.errors || {});",
+                  "    pm.expect(keys.some(k => k === f || k.startsWith(f + '.')), 'errors keys: ' + keys.join(', ')).to.be.true;",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "inherit" },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{{uu_body}}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/api/admin/users/{{user_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "users", "{{user_id}}"] },
+            "description": "Rule area: Validation (required).\nNguồn: API DOC required có `target_tag_id`; 422."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATEUSER_TC_016 - name 256 ký tự (max + 1)",
+          "event": [{ "listen": "prerequest", "script": { "type": "text/javascript", "exec": [
+            "const raw = JSON.parse(pm.collectionVariables.get('uu_base') || pm.environment.get('uu_base') || '{}');",
+            "const b = { name: 'QA' + 'n'.repeat(254), email: raw.email, phone: raw.phone, branch_id: raw.branch_id, target_tag_id: raw.target_tag_id };",
+            "pm.variables.set('uu_err_field', 'name');",
+            "pm.variables.set('uu_body', JSON.stringify(b));"
+          ] } },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const f = pm.variables.get('uu_err_field');",
+                  "pm.test('Status 422', () => pm.response.to.have.status(422));",
+                  "const j = pm.response.json();",
+                  "pm.test('Envelope ValidationException: message string, errors object, data null', () => {",
+                  "  pm.expect(j).to.include.all.keys('message', 'errors', 'data', 'meta');",
+                  "  pm.expect(j.message).to.be.a('string');",
+                  "  pm.expect(j.errors).to.be.an('object');",
+                  "  pm.expect(j.data).to.be.null;",
+                  "});",
+                  "if (f) {",
+                  "  pm.test('errors có lỗi cho field ' + f, () => {",
+                  "    const keys = Object.keys(j.errors || {});",
+                  "    pm.expect(keys.some(k => k === f || k.startsWith(f + '.')), 'errors keys: ' + keys.join(', ')).to.be.true;",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "inherit" },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{{uu_body}}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/api/admin/users/{{user_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "users", "{{user_id}}"] },
+            "description": "Rule area: Boundary (max + 1).\nNguồn: API DOC name.maxLength = 255; UU06."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATEUSER_TC_017 - email = abc (sai định dạng)",
+          "event": [{ "listen": "prerequest", "script": { "type": "text/javascript", "exec": [
+            "const raw = JSON.parse(pm.collectionVariables.get('uu_base') || pm.environment.get('uu_base') || '{}');",
+            "const b = { name: raw.name, email: 'abc', phone: raw.phone, branch_id: raw.branch_id, target_tag_id: raw.target_tag_id };",
+            "pm.variables.set('uu_err_field', 'email');",
+            "pm.variables.set('uu_body', JSON.stringify(b));"
+          ] } },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const f = pm.variables.get('uu_err_field');",
+                  "pm.test('Status 422', () => pm.response.to.have.status(422));",
+                  "const j = pm.response.json();",
+                  "pm.test('Envelope ValidationException: message string, errors object, data null', () => {",
+                  "  pm.expect(j).to.include.all.keys('message', 'errors', 'data', 'meta');",
+                  "  pm.expect(j.message).to.be.a('string');",
+                  "  pm.expect(j.errors).to.be.an('object');",
+                  "  pm.expect(j.data).to.be.null;",
+                  "});",
+                  "if (f) {",
+                  "  pm.test('errors có lỗi cho field ' + f, () => {",
+                  "    const keys = Object.keys(j.errors || {});",
+                  "    pm.expect(keys.some(k => k === f || k.startsWith(f + '.')), 'errors keys: ' + keys.join(', ')).to.be.true;",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "inherit" },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{{uu_body}}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/api/admin/users/{{user_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "users", "{{user_id}}"] },
+            "description": "Rule area: Validation (format).\nNguồn: API DOC email format email; UU05. Test data: `abc`."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATEUSER_TC_018 - phone 9 ký tự (min - 1)",
+          "event": [{ "listen": "prerequest", "script": { "type": "text/javascript", "exec": [
+            "const raw = JSON.parse(pm.collectionVariables.get('uu_base') || pm.environment.get('uu_base') || '{}');",
+            "const b = { name: raw.name, email: raw.email, phone: '090123456', branch_id: raw.branch_id, target_tag_id: raw.target_tag_id };",
+            "pm.variables.set('uu_err_field', 'phone');",
+            "pm.variables.set('uu_body', JSON.stringify(b));"
+          ] } },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const f = pm.variables.get('uu_err_field');",
+                  "pm.test('Status 422', () => pm.response.to.have.status(422));",
+                  "const j = pm.response.json();",
+                  "pm.test('Envelope ValidationException: message string, errors object, data null', () => {",
+                  "  pm.expect(j).to.include.all.keys('message', 'errors', 'data', 'meta');",
+                  "  pm.expect(j.message).to.be.a('string');",
+                  "  pm.expect(j.errors).to.be.an('object');",
+                  "  pm.expect(j.data).to.be.null;",
+                  "});",
+                  "if (f) {",
+                  "  pm.test('errors có lỗi cho field ' + f, () => {",
+                  "    const keys = Object.keys(j.errors || {});",
+                  "    pm.expect(keys.some(k => k === f || k.startsWith(f + '.')), 'errors keys: ' + keys.join(', ')).to.be.true;",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "inherit" },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{{uu_body}}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/api/admin/users/{{user_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "users", "{{user_id}}"] },
+            "description": "Rule area: Boundary (min - 1).\nNguồn: API DOC phone.minLength = 10; UU05. Test data: `090123456`."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATEUSER_TC_019 - phone 12 ký tự (max + 1)",
+          "event": [{ "listen": "prerequest", "script": { "type": "text/javascript", "exec": [
+            "const raw = JSON.parse(pm.collectionVariables.get('uu_base') || pm.environment.get('uu_base') || '{}');",
+            "const b = { name: raw.name, email: raw.email, phone: '090123456789', branch_id: raw.branch_id, target_tag_id: raw.target_tag_id };",
+            "pm.variables.set('uu_err_field', 'phone');",
+            "pm.variables.set('uu_body', JSON.stringify(b));"
+          ] } },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const f = pm.variables.get('uu_err_field');",
+                  "pm.test('Status 422', () => pm.response.to.have.status(422));",
+                  "const j = pm.response.json();",
+                  "pm.test('Envelope ValidationException: message string, errors object, data null', () => {",
+                  "  pm.expect(j).to.include.all.keys('message', 'errors', 'data', 'meta');",
+                  "  pm.expect(j.message).to.be.a('string');",
+                  "  pm.expect(j.errors).to.be.an('object');",
+                  "  pm.expect(j.data).to.be.null;",
+                  "});",
+                  "if (f) {",
+                  "  pm.test('errors có lỗi cho field ' + f, () => {",
+                  "    const keys = Object.keys(j.errors || {});",
+                  "    pm.expect(keys.some(k => k === f || k.startsWith(f + '.')), 'errors keys: ' + keys.join(', ')).to.be.true;",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "inherit" },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{{uu_body}}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/api/admin/users/{{user_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "users", "{{user_id}}"] },
+            "description": "Rule area: Boundary (max + 1).\nNguồn: API DOC phone.maxLength = 11; UU05. Test data: `090123456789`."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATEUSER_TC_020 - branch_id không tồn tại (999999999)",
+          "event": [{ "listen": "prerequest", "script": { "type": "text/javascript", "exec": [
+            "const raw = JSON.parse(pm.collectionVariables.get('uu_base') || pm.environment.get('uu_base') || '{}');",
+            "const b = { name: raw.name, email: raw.email, phone: raw.phone, branch_id: 999999999, target_tag_id: raw.target_tag_id };",
+            "pm.variables.set('uu_err_field', 'branch_id');",
+            "pm.variables.set('uu_body', JSON.stringify(b));"
+          ] } },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const f = pm.variables.get('uu_err_field');",
+                  "pm.test('Status 422', () => pm.response.to.have.status(422));",
+                  "const j = pm.response.json();",
+                  "pm.test('Envelope ValidationException: message string, errors object, data null', () => {",
+                  "  pm.expect(j).to.include.all.keys('message', 'errors', 'data', 'meta');",
+                  "  pm.expect(j.message).to.be.a('string');",
+                  "  pm.expect(j.errors).to.be.an('object');",
+                  "  pm.expect(j.data).to.be.null;",
+                  "});",
+                  "if (f) {",
+                  "  pm.test('errors có lỗi cho field ' + f, () => {",
+                  "    const keys = Object.keys(j.errors || {});",
+                  "    pm.expect(keys.some(k => k === f || k.startsWith(f + '.')), 'errors keys: ' + keys.join(', ')).to.be.true;",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "inherit" },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{{uu_body}}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/api/admin/users/{{user_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "users", "{{user_id}}"] },
+            "description": "Rule area: Validation (tồn tại).\nNguồn: UU03. Test data: branch_id = 999999999 → 422."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATEUSER_TC_021 - target_tag_id không tồn tại (999999999)",
+          "event": [{ "listen": "prerequest", "script": { "type": "text/javascript", "exec": [
+            "const raw = JSON.parse(pm.collectionVariables.get('uu_base') || pm.environment.get('uu_base') || '{}');",
+            "const b = { name: raw.name, email: raw.email, phone: raw.phone, branch_id: raw.branch_id, target_tag_id: 999999999 };",
+            "pm.variables.set('uu_err_field', 'target_tag_id');",
+            "pm.variables.set('uu_body', JSON.stringify(b));"
+          ] } },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const f = pm.variables.get('uu_err_field');",
+                  "pm.test('Status 422', () => pm.response.to.have.status(422));",
+                  "const j = pm.response.json();",
+                  "pm.test('Envelope ValidationException: message string, errors object, data null', () => {",
+                  "  pm.expect(j).to.include.all.keys('message', 'errors', 'data', 'meta');",
+                  "  pm.expect(j.message).to.be.a('string');",
+                  "  pm.expect(j.errors).to.be.an('object');",
+                  "  pm.expect(j.data).to.be.null;",
+                  "});",
+                  "if (f) {",
+                  "  pm.test('errors có lỗi cho field ' + f, () => {",
+                  "    const keys = Object.keys(j.errors || {});",
+                  "    pm.expect(keys.some(k => k === f || k.startsWith(f + '.')), 'errors keys: ' + keys.join(', ')).to.be.true;",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "inherit" },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{{uu_body}}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/api/admin/users/{{user_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "users", "{{user_id}}"] },
+            "description": "Rule area: Validation (tồn tại).\nNguồn: UU04. Test data: target_tag_id = 999999999 → 422."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATEUSER_TC_022 - GET xác nhận các request 422 không làm thay đổi dữ liệu",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const d = pm.response.json().data || {};",
+                  "const s = JSON.parse(pm.collectionVariables.get('uu_sent') || pm.environment.get('uu_sent') || '{}');",
+                  "pm.test('name / email / phone / branch / tag vẫn bằng lần PUT thành công gần nhất', () => {",
+                  "  pm.expect(d.name).to.eql(s.name);",
+                  "  pm.expect(d.email).to.eql(s.email);",
+                  "  pm.expect(d.phone).to.eql(s.phone);",
+                  "  pm.expect(d.branch && d.branch.id).to.eql(s.branch_id);",
+                  "  pm.expect(d.target_tag && d.target_tag.id).to.eql(s.target_tag_id);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "inherit" },
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/admin/users/{{user_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "users", "{{user_id}}"] },
+            "description": "Rule area: Data (consistency khi lỗi).\nNguồn: API DOC 422 + UU09 — request bị từ chối không ghi dữ liệu."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "06. Update User - Auth / Permission / Not found",
+      "item": [
+        {
+          "name": "WELVIE_UPDATEUSER_TC_023 - Không gửi token → 401",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const raw = JSON.parse(pm.collectionVariables.get('uu_base') || pm.environment.get('uu_base') || '{}');",
+                  "const b = { name: raw.name, email: raw.email, phone: raw.phone, branch_id: raw.branch_id, target_tag_id: raw.target_tag_id };",
+                  "pm.variables.set('uu_body', JSON.stringify(b));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 401', () => pm.response.to.have.status(401));",
+                  "const j = pm.response.json();",
+                  "pm.test('Envelope AuthenticationException: message string, errors null, data null', () => {",
+                  "  pm.expect(j.message).to.be.a('string');",
+                  "  pm.expect(j.errors).to.be.null;",
+                  "  pm.expect(j.data).to.be.null;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{{uu_body}}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/api/admin/users/{{user_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "users", "{{user_id}}"] },
+            "description": "Rule area: Auth (missing).\nNguồn: API DOC 401 AuthenticationException."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATEUSER_TC_024 - Token không hợp lệ → 401",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const raw = JSON.parse(pm.collectionVariables.get('uu_base') || pm.environment.get('uu_base') || '{}');",
+                  "const b = { name: raw.name, email: raw.email, phone: raw.phone, branch_id: raw.branch_id, target_tag_id: raw.target_tag_id };",
+                  "pm.variables.set('uu_body', JSON.stringify(b));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 401', () => pm.response.to.have.status(401));",
+                  "const j = pm.response.json();",
+                  "pm.test('Envelope AuthenticationException: errors null, data null', () => {",
+                  "  pm.expect(j.errors).to.be.null;",
+                  "  pm.expect(j.data).to.be.null;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "qa.invalid.token", "type": "string" }] },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{{uu_body}}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/api/admin/users/{{user_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "users", "{{user_id}}"] },
+            "description": "Rule area: Auth (invalid).\nNguồn: API DOC 401. Token hết hạn: N/A."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATEUSER_TC_025 - Viewer sửa user → 403",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!(pm.collectionVariables.get('viewer_access_token') || pm.environment.get('viewer_access_token')) || !(pm.collectionVariables.get('uu_base') || pm.environment.get('uu_base'))) {",
+                  "  console.log('SKIP UPDATEUSER_TC_025: thiếu viewer_access_token hoặc uu_base');",
+                  "  pm.execution.skipRequest();",
+                  "}",
+                  "const raw = JSON.parse(pm.collectionVariables.get('uu_base') || pm.environment.get('uu_base') || '{}');",
+                  "const b = { name: raw.name, email: raw.email, phone: raw.phone, branch_id: raw.branch_id, target_tag_id: raw.target_tag_id };",
+                  "pm.variables.set('uu_body', JSON.stringify(b));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 403 (viewer = ❌ ở ユーザー — 編集)', () => pm.response.to.have.status(403));",
+                  "const j = pm.response.json();",
+                  "pm.test('Envelope AuthorizationException: message string, errors null, data null', () => {",
+                  "  pm.expect(j.message).to.be.a('string');",
+                  "  pm.expect(j.errors).to.be.null;",
+                  "  pm.expect(j.data).to.be.null;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{viewer_access_token}}", "type": "string" }] },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{{uu_body}}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/api/admin/users/{{user_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "users", "{{user_id}}"] },
+            "description": "Rule area: Permission.\nNguồn: 権限マトリックス ユーザー — 編集: viewer ❌; API DOC 403; UU08.\nBody = giá trị gốc nên nếu API cho phép thì data cũng không đổi."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATEUSER_TC_026 - user không tồn tại (999999999) → 404",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!(pm.collectionVariables.get('access_token') || pm.environment.get('access_token')) || !(pm.collectionVariables.get('uu_base') || pm.environment.get('uu_base'))) {",
+                  "  console.log('SKIP UPDATEUSER_TC_026: thiếu access_token hoặc uu_base');",
+                  "  pm.execution.skipRequest();",
+                  "}",
+                  "const raw = JSON.parse(pm.collectionVariables.get('uu_base') || pm.environment.get('uu_base') || '{}');",
+                  "const b = { name: raw.name, email: raw.email, phone: raw.phone, branch_id: raw.branch_id, target_tag_id: raw.target_tag_id };",
+                  "pm.variables.set('uu_body', JSON.stringify(b));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                  "const j = pm.response.json();",
+                  "pm.test('Envelope ModelNotFoundException: message string, errors null, data null', () => {",
+                  "  pm.expect(j.message).to.be.a('string');",
+                  "  pm.expect(j.errors).to.be.null;",
+                  "  pm.expect(j.data).to.be.null;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "inherit" },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{{uu_body}}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/api/admin/users/999999999", "host": ["{{base_url}}"], "path": ["api", "admin", "users", "999999999"] },
+            "description": "Rule area: Negative / Error.\nNguồn: API DOC 404; UU12."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "07. Update User - Khôi phục dữ liệu gốc",
+      "item": [
+        {
+          "name": "WELVIE_UPDATEUSER_TC_027 - PUT lại giá trị gốc của user",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!(pm.collectionVariables.get('access_token') || pm.environment.get('access_token')) || !(pm.collectionVariables.get('uu_base') || pm.environment.get('uu_base'))) {",
+                  "  console.log('SKIP UPDATEUSER_TC_027: thiếu access_token hoặc uu_base — kiểm tra user thủ công');",
+                  "  pm.execution.skipRequest();",
+                  "}",
+                  "const raw = JSON.parse(pm.collectionVariables.get('uu_base') || pm.environment.get('uu_base') || '{}');",
+                  "const b = { name: raw.name, email: raw.email, phone: raw.phone, branch_id: raw.branch_id, target_tag_id: raw.target_tag_id };",
+                  "const s = JSON.stringify(b);",
+                  "pm.variables.set('uu_body', s);",
+                  "pm.collectionVariables.set('uu_sent', s);",
+                  "pm.environment.set('uu_sent', s);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "const s = JSON.parse(pm.collectionVariables.get('uu_sent') || '{}');",
+                  "pm.test('errors null; name về giá trị gốc', () => {",
+                  "  pm.expect(j.errors).to.be.null;",
+                  "  pm.expect(j.data.name).to.eql(s.name);",
+                  "  pm.expect(j.data.email).to.eql(s.email);",
+                  "  pm.expect(j.data.phone).to.eql(s.phone);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "inherit" },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{{uu_body}}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/api/admin/users/{{user_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "users", "{{user_id}}"] },
+            "description": "Rule area: Data (cleanup).\nNguồn: UU01 — khôi phục snapshot TC_001. Không gửi locked (UU07)."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATEUSER_TC_028 - GET xác nhận user đã về giá trị gốc",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const d = pm.response.json().data || {};",
+                  "const base = JSON.parse(pm.collectionVariables.get('uu_base') || pm.environment.get('uu_base') || '{}');",
+                  "pm.test('name / email / phone / branch / tag / tenant về giá trị gốc', () => {",
+                  "  pm.expect(d.name).to.eql(base.name);",
+                  "  pm.expect(d.email).to.eql(base.email);",
+                  "  pm.expect(d.phone).to.eql(base.phone);",
+                  "  pm.expect(d.branch && d.branch.id).to.eql(base.branch_id);",
+                  "  pm.expect(d.target_tag && d.target_tag.id).to.eql(base.target_tag_id);",
+                  "  pm.expect(d.tenant && d.tenant.id).to.eql(base.tenant_id);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "inherit" },
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/admin/users/{{user_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "users", "{{user_id}}"] },
+            "description": "Rule area: Data (cleanup verify).\nNguồn: UU01 + UU09."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

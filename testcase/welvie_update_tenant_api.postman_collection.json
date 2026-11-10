@@ -1,0 +1,1380 @@
+{
+  "info": {
+    "_postman_id": "a8c4e1d0-7b52-4f91-9e3a-6d0c2b8f4a17",
+    "name": "Welvie - Update Tenant API",
+    "description": "Test API `PUT /api/admin/tenants/{tenant}` (portal System admin). Login chỉ để lấy token.\n\nNguồn expected: API DOC `basic design/document.json` — UpdateTenantRequest; response 200 (data null) / 401 / 403 / 404 / 422. GET `/api/admin/tenants/{tenant}` dùng xác nhận dữ liệu (UT10).\n\nAssumption đã chốt (2026/10/28):\nUT01 tenant QA `tenant_id` (STG = 86), snapshot TC_001, restore TC_038–039.\nUT02 không test đổi status; status 0 / 6 → 422.\nUT03 luôn gửi cancel_reason_type = 1; thiếu / 0 / 6 → 422.\nUT04 giữ nguyên type; type = 3 → 422; không test parent.\nUT05 không test CS = null; CS không tồn tại → 422.\nUT06 staff_limit 0 → 422; 1 → 200 (skip nếu staff_count \u003e 1); positive = gốc + 1.\nUT07 representative_name / contract_date = null → 200; ngày sai → 422.\nUT08 option_ids / feature_ids [] → 200; ngoài enum → 422.\nUT09 admin được sửa; viewer → 403.\nUT10 xác nhận bằng GET.\nUT11 token = `data.access_token`, lưu collection variable `access_token`.\nUT12 PUT trùng body → 200, GET không đổi.\nUT13 không assert nội dung message.\nUT14 collection này chỉ Login (2 request) + Update Tenant.\n\nCách chạy: Import file này + `welvie-stg.postman_environment.json` → chọn Welvie STG → Run collection theo thứ tự folder.\n\nNếu run dừng trước folder 07, tenant 86 có thể còn data test — chạy lại TC_038 (khi còn `ut_base`) hoặc sửa tay.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "noauth"
+  },
+  "variable": [
+    { "key": "access_token", "value": "" },
+    { "key": "viewer_access_token", "value": "" },
+    { "key": "ut_base", "value": "" },
+    { "key": "ut_sent", "value": "" },
+    { "key": "ut_staff_count", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "01. Auth - Lấy token",
+      "item": [
+        {
+          "name": "WELVIE_ADMINLOGIN_TC_001 - Đăng nhập thành công bằng admin hợp lệ",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.unset('access_token');",
+                  "pm.environment.unset('access_token');",
+                  "pm.environment.unset('access_token_2');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Content-Type là application/json', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "const j = pm.response.json();",
+                  "pm.test('Có đủ key bắt buộc: message, errors, data, meta', () => pm.expect(j).to.include.all.keys('message', 'errors', 'data', 'meta'));",
+                  "pm.test('message là string, errors là null, meta là object', () => {",
+                  "  pm.expect(j.message).to.be.a('string');",
+                  "  pm.expect(j.errors).to.be.null;",
+                  "  pm.expect(j.meta).to.be.an('object');",
+                  "});",
+                  "pm.test('data có đủ 4 field bắt buộc', () => pm.expect(j.data).to.include.all.keys('access_token', 'refresh_token', 'type_token', 'expires_in'));",
+                  "pm.test('Kiểu dữ liệu của data đúng doc', () => {",
+                  "  pm.expect(j.data.access_token).to.be.a('string');",
+                  "  pm.expect(j.data.refresh_token).to.be.a('string');",
+                  "  pm.expect(j.data.type_token).to.be.a('string');",
+                  "  pm.expect(Number.isInteger(j.data.expires_in), 'expires_in phải là integer').to.be.true;",
+                  "});",
+                  "pm.test('Response không chứa mật khẩu đã gửi', () => pm.expect(pm.response.text()).to.not.include(pm.variables.get('admin_password')));",
+                  "if (j.data && j.data.access_token) {",
+                  "  pm.collectionVariables.set('access_token', j.data.access_token);",
+                  "  pm.environment.set('access_token', j.data.access_token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{admin_email}}\",\n  \"password\": \"{{admin_password}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "auth", "login"]
+            },
+            "description": "Rule area: Auth dependency.\nNguồn: API DOC — login 200, token ở `data.access_token` (UT11). Lưu collection variable `access_token`."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_ADMINLOGIN_TC_023 - Viewer login thành công và lưu viewer_access_token",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.unset('viewer_access_token');",
+                  "pm.environment.unset('viewer_access_token');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.test('errors null; data có access_token dạng string', () => {",
+                  "  pm.expect(j.errors).to.be.null;",
+                  "  pm.expect(j.data.access_token).to.be.a('string').and.not.empty;",
+                  "});",
+                  "if (j.data && j.data.access_token) {",
+                  "  pm.collectionVariables.set('viewer_access_token', j.data.access_token);",
+                  "  pm.environment.set('viewer_access_token', j.data.access_token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{viewer_email}}\",\n  \"password\": \"{{viewer_password}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "auth", "login"]
+            },
+            "description": "Rule area: Permission dependency (UT09).\nNguồn: API DOC — login 200. Lưu `viewer_access_token` cho case viewer → 403."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "02. Update Tenant - Chuẩn bị (snapshot tenant)",
+      "item": [
+        {
+          "name": "WELVIE_UPDATETENANT_TC_001 - GET tenant {{tenant_id}} và lưu giá trị gốc (ut_base)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.unset('ut_base');",
+                  "pm.environment.unset('ut_base');",
+                  "pm.collectionVariables.unset('ut_sent');",
+                  "pm.environment.unset('ut_sent');",
+                  "if (!(pm.collectionVariables.get('access_token') || pm.environment.get('access_token')) || !pm.environment.get('tenant_id')) {",
+                  "  console.log('SKIP UPDATETENANT_TC_001: thiếu access_token hoặc tenant_id');",
+                  "  pm.execution.skipRequest();",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "const d = j.data || {};",
+                  "pm.test('data có đủ field dùng để dựng body PUT', () => pm.expect(d).to.include.all.keys('id', 'name', 'type', 'representative_name', 'status', 'staff_limit', 'staff_count', 'contract_date', 'customer_support', 'option_ids', 'feature_ids'));",
+                  "pm.test('id trả về đúng tenant_id', () => pm.expect(String(d.id)).to.eql(String(pm.environment.get('tenant_id'))));",
+                  "const typeOk = !!d.type && [1, 2, 4, 5].includes(d.type.value);",
+                  "pm.test('type hiện tại nằm trong enum PUT (1, 2, 4, 5) — U04', () => pm.expect(typeOk).to.be.true);",
+                  "pm.test('status hiện tại nằm trong enum PUT (1–5) — U02', () => pm.expect([1, 2, 3, 4, 5]).to.include(d.status && d.status.value));",
+                  "const toDate = v => v ? String(v).slice(0, 10).split('/').join('-') : null;",
+                  "if (pm.response.code === 200 && typeOk) {",
+                  "  const base = {",
+                  "    name: d.name,",
+                  "    type: d.type.value,",
+                  "    representative_name: d.representative_name,",
+                  "    status: d.status.value,",
+                  "    staff_limit: d.staff_limit,",
+                  "    contract_date: toDate(d.contract_date),",
+                  "    customer_support_admin_id: d.customer_support ? d.customer_support.id : null,",
+                  "    cancel_reason_type: 1,",
+                  "    option_ids: d.option_ids,",
+                  "    feature_ids: d.feature_ids",
+                  "  };",
+                  "  pm.collectionVariables.set('ut_base', JSON.stringify(base));",
+                  "  pm.environment.set('ut_base', JSON.stringify(base));",
+                  "  pm.collectionVariables.set('ut_staff_count', String(d.staff_count));",
+                  "  pm.environment.set('ut_staff_count', d.staff_count);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] },
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/admin/tenants/{{tenant_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "tenants", "{{tenant_id}}"] },
+            "description": "Rule area: Dependency / Data.\nNguồn: API DOC `GET /api/admin/tenants/{tenant}` 200; U01 (tenant QA = env `tenant_id`, snapshot đầu run → khôi phục cuối run).\nBody gốc dựng từ GET: `type.value`, `status.value`, `customer_support.id`; `cancel_reason_type` luôn = 1 (U03). GET không trả `parent_tenant_id` / `cancel_description` nên body không gửi 2 field optional này.\nNếu type hiện tại = 3 (FcMember) thì không lưu `ut_base` → toàn bộ case Update Tenant tự skip (U04)."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "03. Update Tenant - Positive / Data / Duplicate",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (!(pm.collectionVariables.get('access_token') || pm.environment.get('access_token')) || !(pm.collectionVariables.get('ut_base') || pm.environment.get('ut_base'))) {",
+              "  console.log('SKIP ' + pm.info.requestName + ': thiếu access_token hoặc ut_base (WELVIE_UPDATETENANT_TC_001)');",
+              "  pm.execution.skipRequest();",
+              "}"
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "name": "WELVIE_UPDATETENANT_TC_002 - Cập nhật name / representative_name / staff_limit / contract_date",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const b = JSON.parse(pm.collectionVariables.get('ut_base') || pm.environment.get('ut_base') || '{}');",
+                  "b.name = 'QA API Tenant 86 更新';",
+                  "b.representative_name = 'QA 代表者 API';",
+                  "b.staff_limit = Number(b.staff_limit) + 1;",
+                  "b.contract_date = '2026-10-01';",
+                  "pm.variables.set('ut_body', JSON.stringify(b));",
+                  "pm.collectionVariables.set('ut_sent', JSON.stringify(b));",
+                  "pm.environment.set('ut_sent', JSON.stringify(b));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.test('Envelope: message string, errors null, data null', () => {",
+                  "  pm.expect(j).to.include.all.keys('message', 'errors', 'data', 'meta');",
+                  "  pm.expect(j.message).to.be.a('string');",
+                  "  pm.expect(j.errors).to.be.null;",
+                  "  pm.expect(j.data).to.be.null;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{{ut_body}}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/api/admin/tenants/{{tenant_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "tenants", "{{tenant_id}}"] },
+            "description": "Rule area: Positive / Response.\nNguồn: API DOC `UpdateTenantRequest` + 200 (data null).\nTest data: name `QA API Tenant 86 更新`, representative_name `QA 代表者 API`, staff_limit = giá trị gốc + 1 (tăng để không vướng số staff hiện có — U06), contract_date `2026-10-01`; type / status / CS / option_ids / feature_ids giữ nguyên (U02, U04, U05, U08)."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATETENANT_TC_003 - GET xác nhận dữ liệu TC_002 đã được lưu",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const d = pm.response.json().data || {};",
+                  "const s = JSON.parse(pm.collectionVariables.get('ut_sent') || pm.environment.get('ut_sent') || '{}');",
+                  "const toDate = v => v ? String(v).slice(0, 10).split('/').join('-') : null;",
+                  "const sorted = a => (a || []).map(Number).sort((x, y) => x - y);",
+                  "pm.test('name đã lưu đúng', () => pm.expect(d.name).to.eql(s.name));",
+                  "pm.test('representative_name đã lưu đúng', () => pm.expect(d.representative_name).to.eql(s.representative_name));",
+                  "pm.test('staff_limit đã lưu đúng', () => pm.expect(d.staff_limit).to.eql(s.staff_limit));",
+                  "pm.test('contract_date đã lưu đúng', () => pm.expect(toDate(d.contract_date)).to.eql(s.contract_date));",
+                  "pm.test('CS担当 giữ nguyên', () => pm.expect(d.customer_support ? d.customer_support.id : null).to.eql(s.customer_support_admin_id));",
+                  "pm.test('option_ids đã lưu đúng', () => pm.expect(sorted(d.option_ids)).to.eql(sorted(s.option_ids)));",
+                  "pm.test('feature_ids đã lưu đúng', () => pm.expect(sorted(d.feature_ids)).to.eql(sorted(s.feature_ids)));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] },
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/admin/tenants/{{tenant_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "tenants", "{{tenant_id}}"] },
+            "description": "Rule area: Data (consistency).\nNguồn: U10 — PUT trả data null nên xác nhận bằng GET. So sánh với body đã gửi (env `ut_sent`); contract_date chuẩn hoá về YYYY-MM-DD trước khi so."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATETENANT_TC_004 - Gửi lại đúng body TC_002 lần 2 vẫn 200",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('ut_body', pm.collectionVariables.get('ut_sent') || pm.environment.get('ut_sent') || '{}');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.test('Envelope: errors null, data null', () => {",
+                  "  pm.expect(j.errors).to.be.null;",
+                  "  pm.expect(j.data).to.be.null;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{{ut_body}}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/api/admin/tenants/{{tenant_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "tenants", "{{tenant_id}}"] },
+            "description": "Rule area: Duplicate / Idempotency.\nNguồn: API DOC — PUT với body hợp lệ trả 200. Kết quả dữ liệu kiểm ở TC_005."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATETENANT_TC_005 - GET xác nhận dữ liệu không đổi sau lần PUT thứ 2",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const d = pm.response.json().data || {};",
+                  "const s = JSON.parse(pm.collectionVariables.get('ut_sent') || pm.environment.get('ut_sent') || '{}');",
+                  "const toDate = v => v ? String(v).slice(0, 10).split('/').join('-') : null;",
+                  "const sorted = a => (a || []).map(Number).sort((x, y) => x - y);",
+                  "pm.test('name / representative_name / staff_limit / contract_date không đổi', () => {",
+                  "  pm.expect(d.name).to.eql(s.name);",
+                  "  pm.expect(d.representative_name).to.eql(s.representative_name);",
+                  "  pm.expect(d.staff_limit).to.eql(s.staff_limit);",
+                  "  pm.expect(toDate(d.contract_date)).to.eql(s.contract_date);",
+                  "});",
+                  "pm.test('CS / option_ids / feature_ids không đổi', () => {",
+                  "  pm.expect(d.customer_support ? d.customer_support.id : null).to.eql(s.customer_support_admin_id);",
+                  "  pm.expect(sorted(d.option_ids)).to.eql(sorted(s.option_ids));",
+                  "  pm.expect(sorted(d.feature_ids)).to.eql(sorted(s.feature_ids));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] },
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/admin/tenants/{{tenant_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "tenants", "{{tenant_id}}"] },
+            "description": "Rule area: Duplicate / Data.\nNguồn: U10."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATETENANT_TC_006 - representative_name và contract_date = null → 200",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const b = JSON.parse(pm.collectionVariables.get('ut_base') || pm.environment.get('ut_base') || '{}');",
+                  "b.representative_name = null;",
+                  "b.contract_date = null;",
+                  "pm.variables.set('ut_body', JSON.stringify(b));",
+                  "pm.collectionVariables.set('ut_sent', JSON.stringify(b));",
+                  "pm.environment.set('ut_sent', JSON.stringify(b));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.test('Envelope: errors null, data null', () => {",
+                  "  pm.expect(j.errors).to.be.null;",
+                  "  pm.expect(j.data).to.be.null;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{{ut_body}}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/api/admin/tenants/{{tenant_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "tenants", "{{tenant_id}}"] },
+            "description": "Rule area: Validation (nullable).\nNguồn: API DOC — `representative_name` [string, null], `contract_date` [string, null]; U07."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATETENANT_TC_007 - GET xác nhận representative_name và contract_date đã thành null",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const d = pm.response.json().data || {};",
+                  "pm.test('representative_name = null', () => pm.expect(d.representative_name).to.be.null);",
+                  "pm.test('contract_date = null', () => pm.expect(d.contract_date).to.be.null);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] },
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/admin/tenants/{{tenant_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "tenants", "{{tenant_id}}"] },
+            "description": "Rule area: Data.\nNguồn: U07 + U10."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATETENANT_TC_008 - option_ids và feature_ids = [] → 200",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const b = JSON.parse(pm.collectionVariables.get('ut_base') || pm.environment.get('ut_base') || '{}');",
+                  "b.option_ids = [];",
+                  "b.feature_ids = [];",
+                  "pm.variables.set('ut_body', JSON.stringify(b));",
+                  "pm.collectionVariables.set('ut_sent', JSON.stringify(b));",
+                  "pm.environment.set('ut_sent', JSON.stringify(b));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.test('Envelope: errors null, data null', () => {",
+                  "  pm.expect(j.errors).to.be.null;",
+                  "  pm.expect(j.data).to.be.null;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{{ut_body}}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/api/admin/tenants/{{tenant_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "tenants", "{{tenant_id}}"] },
+            "description": "Rule area: Boundary (mảng rỗng) / Business.\nNguồn: API DOC — option_ids / feature_ids là array (không có minItems); U08 (tenant 86 là tenant QA nên được tắt hết menu tạm thời; khôi phục ở folder 17)."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATETENANT_TC_009 - GET xác nhận option_ids và feature_ids đã rỗng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const d = pm.response.json().data || {};",
+                  "pm.test('option_ids = []', () => pm.expect(d.option_ids).to.be.an('array').that.is.empty);",
+                  "pm.test('feature_ids = []', () => pm.expect(d.feature_ids).to.be.an('array').that.is.empty);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] },
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/admin/tenants/{{tenant_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "tenants", "{{tenant_id}}"] },
+            "description": "Rule area: Data.\nNguồn: U08 + U10."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "04. Update Tenant - Boundary hợp lệ",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (!(pm.collectionVariables.get('access_token') || pm.environment.get('access_token')) || !(pm.collectionVariables.get('ut_base') || pm.environment.get('ut_base'))) {",
+              "  console.log('SKIP ' + pm.info.requestName + ': thiếu access_token hoặc ut_base (WELVIE_UPDATETENANT_TC_001)');",
+              "  pm.execution.skipRequest();",
+              "}"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.request.method === 'PUT') {",
+              "  pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "  const j = pm.response.json();",
+              "  pm.test('Envelope: errors null, data null', () => {",
+              "    pm.expect(j.errors).to.be.null;",
+              "    pm.expect(j.data).to.be.null;",
+              "  });",
+              "}"
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "name": "WELVIE_UPDATETENANT_TC_010 - name 255 ký tự (max)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const b = JSON.parse(pm.collectionVariables.get('ut_base') || pm.environment.get('ut_base') || '{}');",
+                  "b.name = 'QA' + 'n'.repeat(253);",
+                  "pm.variables.set('ut_body', JSON.stringify(b));",
+                  "pm.collectionVariables.set('ut_sent', JSON.stringify(b));",
+                  "pm.environment.set('ut_sent', JSON.stringify(b));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('name gửi đi dài đúng 255 ký tự', () => pm.expect(JSON.parse(pm.variables.get('ut_body')).name.length).to.eql(255));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{{ut_body}}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/api/admin/tenants/{{tenant_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "tenants", "{{tenant_id}}"] },
+            "description": "Rule area: Boundary (max hợp lệ).\nNguồn: API DOC — `name.maxLength = 255`; BD Validation rule Create Tenant CompanyName max 255."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATETENANT_TC_011 - GET xác nhận name 255 ký tự được lưu nguyên vẹn",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const d = pm.response.json().data || {};",
+                  "const s = JSON.parse(pm.collectionVariables.get('ut_sent') || pm.environment.get('ut_sent') || '{}');",
+                  "pm.test('name lưu đủ 255 ký tự, không bị cắt', () => pm.expect(d.name).to.eql(s.name));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] },
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/admin/tenants/{{tenant_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "tenants", "{{tenant_id}}"] },
+            "description": "Rule area: Data / Boundary.\nNguồn: U10."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATETENANT_TC_012 - representative_name 255 ký tự (max)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const b = JSON.parse(pm.collectionVariables.get('ut_base') || pm.environment.get('ut_base') || '{}');",
+                  "b.representative_name = 'QA' + 'r'.repeat(253);",
+                  "pm.variables.set('ut_body', JSON.stringify(b));",
+                  "pm.collectionVariables.set('ut_sent', JSON.stringify(b));",
+                  "pm.environment.set('ut_sent', JSON.stringify(b));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('representative_name gửi đi dài đúng 255 ký tự', () => pm.expect(JSON.parse(pm.variables.get('ut_body')).representative_name.length).to.eql(255));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{{ut_body}}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/api/admin/tenants/{{tenant_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "tenants", "{{tenant_id}}"] },
+            "description": "Rule area: Boundary (max hợp lệ).\nNguồn: API DOC — `representative_name.maxLength = 255`."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATETENANT_TC_013 - cancel_description 1000 ký tự (max)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const b = JSON.parse(pm.collectionVariables.get('ut_base') || pm.environment.get('ut_base') || '{}');",
+                  "b.cancel_description = 'QA' + 'c'.repeat(998);",
+                  "pm.variables.set('ut_body', JSON.stringify(b));",
+                  "pm.collectionVariables.set('ut_sent', JSON.stringify(b));",
+                  "pm.environment.set('ut_sent', JSON.stringify(b));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('cancel_description gửi đi dài đúng 1000 ký tự', () => pm.expect(JSON.parse(pm.variables.get('ut_body')).cancel_description.length).to.eql(1000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{{ut_body}}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/api/admin/tenants/{{tenant_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "tenants", "{{tenant_id}}"] },
+            "description": "Rule area: Boundary (max hợp lệ).\nNguồn: API DOC — `cancel_description.maxLength = 1000`.\nKhông xác nhận bằng GET vì GET không trả `cancel_description`."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATETENANT_TC_014 - staff_limit = 1 (min theo DOC)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (Number(pm.environment.get('ut_staff_count')) > 1) {",
+                  "  console.log('SKIP UPDATETENANT_TC_014: tenant đang có hơn 1 staff, staff_limit = 1 sẽ nhỏ hơn số staff hiện có (U06 không test case này)');",
+                  "  pm.execution.skipRequest();",
+                  "} else {",
+                  "  const b = JSON.parse(pm.collectionVariables.get('ut_base') || pm.environment.get('ut_base') || '{}');",
+                  "  b.staff_limit = 1;",
+                  "  pm.variables.set('ut_body', JSON.stringify(b));",
+                  "  pm.collectionVariables.set('ut_sent', JSON.stringify(b));",
+                  "pm.environment.set('ut_sent', JSON.stringify(b));",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{{ut_body}}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/api/admin/tenants/{{tenant_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "tenants", "{{tenant_id}}"] },
+            "description": "Rule area: Boundary (min hợp lệ).\nNguồn: API DOC — `staff_limit.minimum = 1`; U06 (theo DOC, 1 → 200).\nMâu thuẫn đã ghi nhận: BD `法人` No.68 ghi \"編集する場合に1以下に編集不可\" — nếu API trả 422 thì đó là dấu hiệu implementation theo BD, cần hỏi dev chứ chưa kết luận lỗi.\nTự skip nếu tenant đang có hơn 1 staff."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATETENANT_TC_015 - GET xác nhận dữ liệu boundary cuối cùng đã được lưu",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const d = pm.response.json().data || {};",
+                  "const s = JSON.parse(pm.collectionVariables.get('ut_sent') || pm.environment.get('ut_sent') || '{}');",
+                  "pm.test('name / representative_name / staff_limit khớp lần PUT thành công gần nhất', () => {",
+                  "  pm.expect(d.name).to.eql(s.name);",
+                  "  pm.expect(d.representative_name).to.eql(s.representative_name);",
+                  "  pm.expect(d.staff_limit).to.eql(s.staff_limit);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] },
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/admin/tenants/{{tenant_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "tenants", "{{tenant_id}}"] },
+            "description": "Rule area: Data.\nNguồn: U10. So với `ut_sent` của lần PUT gần nhất (TC_014 nếu chạy, nếu không là TC_013)."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "05. Update Tenant - Validation (422)",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (!(pm.collectionVariables.get('access_token') || pm.environment.get('access_token')) || !(pm.collectionVariables.get('ut_base') || pm.environment.get('ut_base'))) {",
+              "  console.log('SKIP ' + pm.info.requestName + ': thiếu access_token hoặc ut_base (WELVIE_UPDATETENANT_TC_001)');",
+              "  pm.execution.skipRequest();",
+              "}"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.request.method === 'PUT') {",
+              "  const f = pm.variables.get('ut_err_field');",
+              "  pm.test('Status 422', () => pm.response.to.have.status(422));",
+              "  const j = pm.response.json();",
+              "  pm.test('Envelope ValidationException: message string, errors object, data null', () => {",
+              "    pm.expect(j).to.include.all.keys('message', 'errors', 'data', 'meta');",
+              "    pm.expect(j.message).to.be.a('string');",
+              "    pm.expect(j.errors).to.be.an('object');",
+              "    pm.expect(j.data).to.be.null;",
+              "  });",
+              "  pm.test('errors có lỗi cho field ' + f, () => {",
+              "    const keys = Object.keys(j.errors || {});",
+              "    pm.expect(keys.some(k => k === f || k.startsWith(f + '.')), 'errors keys: ' + keys.join(', ')).to.be.true;",
+              "  });",
+              "}"
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "name": "WELVIE_UPDATETENANT_TC_016 - Thiếu field name",
+          "event": [{ "listen": "prerequest", "script": { "type": "text/javascript", "exec": [
+            "const b = JSON.parse(pm.collectionVariables.get('ut_base') || pm.environment.get('ut_base') || '{}');",
+            "delete b.name;",
+            "pm.variables.set('ut_err_field', 'name');",
+            "pm.variables.set('ut_body', JSON.stringify(b));"
+          ] } }],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{{ut_body}}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/api/admin/tenants/{{tenant_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "tenants", "{{tenant_id}}"] },
+            "description": "Rule area: Validation (required).\nNguồn: API DOC — UpdateTenantRequest.required có `name`; 422 ValidationException."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATETENANT_TC_017 - name 256 ký tự (max + 1)",
+          "event": [{ "listen": "prerequest", "script": { "type": "text/javascript", "exec": [
+            "const b = JSON.parse(pm.collectionVariables.get('ut_base') || pm.environment.get('ut_base') || '{}');",
+            "b.name = 'QA' + 'n'.repeat(254);",
+            "pm.variables.set('ut_err_field', 'name');",
+            "pm.variables.set('ut_body', JSON.stringify(b));"
+          ] } }],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{{ut_body}}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/api/admin/tenants/{{tenant_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "tenants", "{{tenant_id}}"] },
+            "description": "Rule area: Boundary (max + 1).\nNguồn: API DOC — `name.maxLength = 255`; 422."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATETENANT_TC_018 - representative_name 256 ký tự (max + 1)",
+          "event": [{ "listen": "prerequest", "script": { "type": "text/javascript", "exec": [
+            "const b = JSON.parse(pm.collectionVariables.get('ut_base') || pm.environment.get('ut_base') || '{}');",
+            "b.representative_name = 'QA' + 'r'.repeat(254);",
+            "pm.variables.set('ut_err_field', 'representative_name');",
+            "pm.variables.set('ut_body', JSON.stringify(b));"
+          ] } }],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{{ut_body}}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/api/admin/tenants/{{tenant_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "tenants", "{{tenant_id}}"] },
+            "description": "Rule area: Boundary (max + 1).\nNguồn: API DOC — `representative_name.maxLength = 255`; 422."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATETENANT_TC_019 - cancel_description 1001 ký tự (max + 1)",
+          "event": [{ "listen": "prerequest", "script": { "type": "text/javascript", "exec": [
+            "const b = JSON.parse(pm.collectionVariables.get('ut_base') || pm.environment.get('ut_base') || '{}');",
+            "b.cancel_description = 'QA' + 'c'.repeat(999);",
+            "pm.variables.set('ut_err_field', 'cancel_description');",
+            "pm.variables.set('ut_body', JSON.stringify(b));"
+          ] } }],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{{ut_body}}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/api/admin/tenants/{{tenant_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "tenants", "{{tenant_id}}"] },
+            "description": "Rule area: Boundary (max + 1).\nNguồn: API DOC — `cancel_description.maxLength = 1000`; 422."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATETENANT_TC_020 - type = 3 (FcMember, ngoài enum PUT)",
+          "event": [{ "listen": "prerequest", "script": { "type": "text/javascript", "exec": [
+            "const b = JSON.parse(pm.collectionVariables.get('ut_base') || pm.environment.get('ut_base') || '{}');",
+            "b.type = 3;",
+            "pm.variables.set('ut_err_field', 'type');",
+            "pm.variables.set('ut_body', JSON.stringify(b));"
+          ] } }],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{{ut_body}}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/api/admin/tenants/{{tenant_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "tenants", "{{tenant_id}}"] },
+            "description": "Rule area: Validation (enum).\nNguồn: API DOC — `type.enum = [1, 2, 4, 5]`; U04.\nLưu ý: BD có FC加盟店 trong dropdown sửa — nếu API trả 200 thì DOC và BD đang lệch, cần xác nhận."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATETENANT_TC_021 - status = 0 (dưới enum)",
+          "event": [{ "listen": "prerequest", "script": { "type": "text/javascript", "exec": [
+            "const b = JSON.parse(pm.collectionVariables.get('ut_base') || pm.environment.get('ut_base') || '{}');",
+            "b.status = 0;",
+            "pm.variables.set('ut_err_field', 'status');",
+            "pm.variables.set('ut_body', JSON.stringify(b));"
+          ] } }],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{{ut_body}}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/api/admin/tenants/{{tenant_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "tenants", "{{tenant_id}}"] },
+            "description": "Rule area: Validation (enum).\nNguồn: API DOC — `status.enum = [1..5]`; U02."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATETENANT_TC_022 - status = 6 (trên enum)",
+          "event": [{ "listen": "prerequest", "script": { "type": "text/javascript", "exec": [
+            "const b = JSON.parse(pm.collectionVariables.get('ut_base') || pm.environment.get('ut_base') || '{}');",
+            "b.status = 6;",
+            "pm.variables.set('ut_err_field', 'status');",
+            "pm.variables.set('ut_body', JSON.stringify(b));"
+          ] } }],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{{ut_body}}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/api/admin/tenants/{{tenant_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "tenants", "{{tenant_id}}"] },
+            "description": "Rule area: Validation (enum).\nNguồn: API DOC — `status.enum = [1..5]`; U02. BD liệt kê 6 trạng thái — nếu API trả 200 thì cần xác nhận mapping."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATETENANT_TC_023 - staff_limit = 0 (min - 1)",
+          "event": [{ "listen": "prerequest", "script": { "type": "text/javascript", "exec": [
+            "const b = JSON.parse(pm.collectionVariables.get('ut_base') || pm.environment.get('ut_base') || '{}');",
+            "b.staff_limit = 0;",
+            "pm.variables.set('ut_err_field', 'staff_limit');",
+            "pm.variables.set('ut_body', JSON.stringify(b));"
+          ] } }],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{{ut_body}}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/api/admin/tenants/{{tenant_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "tenants", "{{tenant_id}}"] },
+            "description": "Rule area: Boundary (min - 1).\nNguồn: API DOC — `staff_limit.minimum = 1`; BD `法人` No.68; U06."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATETENANT_TC_024 - staff_limit là chuỗi (abc)",
+          "event": [{ "listen": "prerequest", "script": { "type": "text/javascript", "exec": [
+            "const b = JSON.parse(pm.collectionVariables.get('ut_base') || pm.environment.get('ut_base') || '{}');",
+            "b.staff_limit = 'abc';",
+            "pm.variables.set('ut_err_field', 'staff_limit');",
+            "pm.variables.set('ut_body', JSON.stringify(b));"
+          ] } }],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{{ut_body}}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/api/admin/tenants/{{tenant_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "tenants", "{{tenant_id}}"] },
+            "description": "Rule area: Validation (type).\nNguồn: API DOC — `staff_limit` type integer; 422."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATETENANT_TC_025 - contract_date = 2026/13/01 (ngày không tồn tại)",
+          "event": [{ "listen": "prerequest", "script": { "type": "text/javascript", "exec": [
+            "const b = JSON.parse(pm.collectionVariables.get('ut_base') || pm.environment.get('ut_base') || '{}');",
+            "b.contract_date = '2026/13/01';",
+            "pm.variables.set('ut_err_field', 'contract_date');",
+            "pm.variables.set('ut_body', JSON.stringify(b));"
+          ] } }],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{{ut_body}}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/api/admin/tenants/{{tenant_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "tenants", "{{tenant_id}}"] },
+            "description": "Rule area: Validation (format / ngày không hợp lệ).\nNguồn: API DOC — `contract_date` format date; BD Validation rule Edit Tenant — Contract date Invalid (`有効な日付を入力（選択）してください。`); U07. Không assert nội dung message."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATETENANT_TC_026 - contract_date = abc (sai định dạng)",
+          "event": [{ "listen": "prerequest", "script": { "type": "text/javascript", "exec": [
+            "const b = JSON.parse(pm.collectionVariables.get('ut_base') || pm.environment.get('ut_base') || '{}');",
+            "b.contract_date = 'abc';",
+            "pm.variables.set('ut_err_field', 'contract_date');",
+            "pm.variables.set('ut_body', JSON.stringify(b));"
+          ] } }],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{{ut_body}}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/api/admin/tenants/{{tenant_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "tenants", "{{tenant_id}}"] },
+            "description": "Rule area: Validation (format).\nNguồn: API DOC — `contract_date` format date; BD Validation rule Edit Tenant; U07."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATETENANT_TC_027 - customer_support_admin_id không tồn tại (999999999)",
+          "event": [{ "listen": "prerequest", "script": { "type": "text/javascript", "exec": [
+            "const b = JSON.parse(pm.collectionVariables.get('ut_base') || pm.environment.get('ut_base') || '{}');",
+            "b.customer_support_admin_id = 999999999;",
+            "pm.variables.set('ut_err_field', 'customer_support_admin_id');",
+            "pm.variables.set('ut_body', JSON.stringify(b));"
+          ] } }],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{{ut_body}}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/api/admin/tenants/{{tenant_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "tenants", "{{tenant_id}}"] },
+            "description": "Rule area: Validation (tồn tại) / Data.\nNguồn: U05 (đã xác nhận: id CS không tồn tại → 422). Không test null vì DOC (nullable) và BD (必須) mâu thuẫn."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATETENANT_TC_028 - Thiếu field cancel_reason_type",
+          "event": [{ "listen": "prerequest", "script": { "type": "text/javascript", "exec": [
+            "const b = JSON.parse(pm.collectionVariables.get('ut_base') || pm.environment.get('ut_base') || '{}');",
+            "delete b.cancel_reason_type;",
+            "pm.variables.set('ut_err_field', 'cancel_reason_type');",
+            "pm.variables.set('ut_body', JSON.stringify(b));"
+          ] } }],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{{ut_body}}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/api/admin/tenants/{{tenant_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "tenants", "{{tenant_id}}"] },
+            "description": "Rule area: Validation (required).\nNguồn: API DOC — UpdateTenantRequest.required có `cancel_reason_type`; U03."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATETENANT_TC_029 - cancel_reason_type = 0 (dưới enum)",
+          "event": [{ "listen": "prerequest", "script": { "type": "text/javascript", "exec": [
+            "const b = JSON.parse(pm.collectionVariables.get('ut_base') || pm.environment.get('ut_base') || '{}');",
+            "b.cancel_reason_type = 0;",
+            "pm.variables.set('ut_err_field', 'cancel_reason_type');",
+            "pm.variables.set('ut_body', JSON.stringify(b));"
+          ] } }],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{{ut_body}}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/api/admin/tenants/{{tenant_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "tenants", "{{tenant_id}}"] },
+            "description": "Rule area: Validation (enum).\nNguồn: API DOC — `CancelReasonType.enum = [1..5]`; U03."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATETENANT_TC_030 - cancel_reason_type = 6 (trên enum)",
+          "event": [{ "listen": "prerequest", "script": { "type": "text/javascript", "exec": [
+            "const b = JSON.parse(pm.collectionVariables.get('ut_base') || pm.environment.get('ut_base') || '{}');",
+            "b.cancel_reason_type = 6;",
+            "pm.variables.set('ut_err_field', 'cancel_reason_type');",
+            "pm.variables.set('ut_body', JSON.stringify(b));"
+          ] } }],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{{ut_body}}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/api/admin/tenants/{{tenant_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "tenants", "{{tenant_id}}"] },
+            "description": "Rule area: Validation (enum).\nNguồn: API DOC — `CancelReasonType.enum = [1..5]`; U03."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATETENANT_TC_031 - feature_ids chứa giá trị ngoài enum (8)",
+          "event": [{ "listen": "prerequest", "script": { "type": "text/javascript", "exec": [
+            "const b = JSON.parse(pm.collectionVariables.get('ut_base') || pm.environment.get('ut_base') || '{}');",
+            "b.feature_ids = [8];",
+            "pm.variables.set('ut_err_field', 'feature_ids');",
+            "pm.variables.set('ut_body', JSON.stringify(b));"
+          ] } }],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{{ut_body}}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/api/admin/tenants/{{tenant_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "tenants", "{{tenant_id}}"] },
+            "description": "Rule area: Validation (enum phần tử mảng).\nNguồn: API DOC — `TenantFeature.enum = [1..7]`; U08. Chấp nhận key lỗi `feature_ids` hoặc `feature_ids.0`."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATETENANT_TC_032 - option_ids chứa giá trị ngoài enum (2)",
+          "event": [{ "listen": "prerequest", "script": { "type": "text/javascript", "exec": [
+            "const b = JSON.parse(pm.collectionVariables.get('ut_base') || pm.environment.get('ut_base') || '{}');",
+            "b.option_ids = [2];",
+            "pm.variables.set('ut_err_field', 'option_ids');",
+            "pm.variables.set('ut_body', JSON.stringify(b));"
+          ] } }],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{{ut_body}}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/api/admin/tenants/{{tenant_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "tenants", "{{tenant_id}}"] },
+            "description": "Rule area: Validation (enum phần tử mảng).\nNguồn: API DOC — `TenantOption.enum = [1]`; U08. Chấp nhận key lỗi `option_ids` hoặc `option_ids.0`."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATETENANT_TC_033 - GET xác nhận các request 422 không làm thay đổi dữ liệu",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const d = pm.response.json().data || {};",
+                  "const s = JSON.parse(pm.collectionVariables.get('ut_sent') || pm.environment.get('ut_sent') || '{}');",
+                  "const sorted = a => (a || []).map(Number).sort((x, y) => x - y);",
+                  "pm.test('name / representative_name / staff_limit vẫn bằng lần PUT thành công gần nhất', () => {",
+                  "  pm.expect(d.name).to.eql(s.name);",
+                  "  pm.expect(d.representative_name).to.eql(s.representative_name);",
+                  "  pm.expect(d.staff_limit).to.eql(s.staff_limit);",
+                  "});",
+                  "pm.test('type / status / CS / option_ids / feature_ids không bị đổi', () => {",
+                  "  pm.expect(d.type && d.type.value).to.eql(s.type);",
+                  "  pm.expect(d.status && d.status.value).to.eql(s.status);",
+                  "  pm.expect(d.customer_support ? d.customer_support.id : null).to.eql(s.customer_support_admin_id);",
+                  "  pm.expect(sorted(d.option_ids)).to.eql(sorted(s.option_ids));",
+                  "  pm.expect(sorted(d.feature_ids)).to.eql(sorted(s.feature_ids));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] },
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/admin/tenants/{{tenant_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "tenants", "{{tenant_id}}"] },
+            "description": "Rule area: Data (consistency khi lỗi).\nNguồn: API DOC 422 ValidationException + U10 — request bị từ chối không được ghi dữ liệu."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "06. Update Tenant - Auth / Permission / Not found",
+      "item": [
+        {
+          "name": "WELVIE_UPDATETENANT_TC_034 - Không gửi token → 401",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('ut_body', pm.environment.get('ut_base') || '{}');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 401', () => pm.response.to.have.status(401));",
+                  "const j = pm.response.json();",
+                  "pm.test('Envelope AuthenticationException: message string, errors null, data null', () => {",
+                  "  pm.expect(j.message).to.be.a('string');",
+                  "  pm.expect(j.errors).to.be.null;",
+                  "  pm.expect(j.data).to.be.null;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{{ut_body}}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/api/admin/tenants/{{tenant_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "tenants", "{{tenant_id}}"] },
+            "description": "Rule area: Auth (missing).\nNguồn: API DOC — 401 AuthenticationException."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATETENANT_TC_035 - Token không hợp lệ → 401",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('ut_body', pm.environment.get('ut_base') || '{}');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 401', () => pm.response.to.have.status(401));",
+                  "const j = pm.response.json();",
+                  "pm.test('Envelope AuthenticationException: errors null, data null', () => {",
+                  "  pm.expect(j.errors).to.be.null;",
+                  "  pm.expect(j.data).to.be.null;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "qa.invalid.token", "type": "string" }] },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{{ut_body}}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/api/admin/tenants/{{tenant_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "tenants", "{{tenant_id}}"] },
+            "description": "Rule area: Auth (invalid).\nNguồn: API DOC — 401 AuthenticationException. Token hết hạn: N/A."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATETENANT_TC_036 - Viewer sửa tenant → 403",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.environment.get('viewer_access_token') || !pm.environment.get('ut_base')) {",
+                  "  console.log('SKIP UPDATETENANT_TC_036: thiếu viewer_access_token (WELVIE_ADMINLOGIN_TC_023) hoặc ut_base');",
+                  "  pm.execution.skipRequest();",
+                  "}",
+                  "pm.variables.set('ut_body', pm.environment.get('ut_base') || '{}');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 403 (viewer = ❌ ở 法人 — 編集)', () => pm.response.to.have.status(403));",
+                  "const j = pm.response.json();",
+                  "pm.test('Envelope AuthorizationException: message string, errors null, data null', () => {",
+                  "  pm.expect(j.message).to.be.a('string');",
+                  "  pm.expect(j.errors).to.be.null;",
+                  "  pm.expect(j.data).to.be.null;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{viewer_access_token}}", "type": "string" }] },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{{ut_body}}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/api/admin/tenants/{{tenant_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "tenants", "{{tenant_id}}"] },
+            "description": "Rule area: Permission.\nNguồn: 権限マトリックス — 法人 — 編集: viewer ❌; API DOC 403 AuthorizationException; U09.\nBody = giá trị gốc nên kể cả khi API cho phép, dữ liệu cũng không bị đổi. BD ghi role viewer chưa chốt → kết quả khác 403 thì ghi \"cần xác nhận\", chưa kết luận lỗi."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATETENANT_TC_037 - tenant không tồn tại (999999999) → 404",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!(pm.collectionVariables.get('access_token') || pm.environment.get('access_token')) || !(pm.collectionVariables.get('ut_base') || pm.environment.get('ut_base'))) {",
+                  "  console.log('SKIP UPDATETENANT_TC_037: thiếu access_token hoặc ut_base');",
+                  "  pm.execution.skipRequest();",
+                  "}",
+                  "pm.variables.set('ut_body', pm.environment.get('ut_base') || '{}');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                  "const j = pm.response.json();",
+                  "pm.test('Envelope ModelNotFoundException: message string, errors null, data null', () => {",
+                  "  pm.expect(j.message).to.be.a('string');",
+                  "  pm.expect(j.errors).to.be.null;",
+                  "  pm.expect(j.data).to.be.null;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{{ut_body}}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/api/admin/tenants/999999999", "host": ["{{base_url}}"], "path": ["api", "admin", "tenants", "999999999"] },
+            "description": "Rule area: Negative / Error (resource không tồn tại).\nNguồn: API DOC — 404 ModelNotFoundException."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "07. Update Tenant - Khôi phục dữ liệu gốc",
+      "item": [
+        {
+          "name": "WELVIE_UPDATETENANT_TC_038 - PUT lại giá trị gốc của tenant",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!(pm.collectionVariables.get('access_token') || pm.environment.get('access_token')) || !(pm.collectionVariables.get('ut_base') || pm.environment.get('ut_base'))) {",
+                  "  console.log('SKIP UPDATETENANT_TC_038: thiếu access_token hoặc ut_base — kiểm tra tenant thủ công');",
+                  "  pm.execution.skipRequest();",
+                  "}",
+                  "pm.variables.set('ut_body', pm.environment.get('ut_base') || '{}');",
+                  "pm.environment.set('ut_sent', pm.environment.get('ut_base') || '{}');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.test('Envelope: errors null, data null', () => {",
+                  "  pm.expect(j.errors).to.be.null;",
+                  "  pm.expect(j.data).to.be.null;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{{ut_body}}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{base_url}}/api/admin/tenants/{{tenant_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "tenants", "{{tenant_id}}"] },
+            "description": "Rule area: Data (cleanup).\nNguồn: U01 — khôi phục giá trị đã snapshot ở WELVIE_UPDATETENANT_TC_001.\nGiới hạn: `cancel_reason_type` sẽ được lưu = 1 (U03); `cancel_description` không khôi phục được vì GET không trả field này."
+          },
+          "response": []
+        },
+        {
+          "name": "WELVIE_UPDATETENANT_TC_039 - GET xác nhận tenant đã về giá trị gốc",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const d = pm.response.json().data || {};",
+                  "const s = JSON.parse(pm.collectionVariables.get('ut_base') || pm.environment.get('ut_base') || '{}');",
+                  "const toDate = v => v ? String(v).slice(0, 10).split('/').join('-') : null;",
+                  "const sorted = a => (a || []).map(Number).sort((x, y) => x - y);",
+                  "pm.test('name / representative_name / staff_limit / contract_date về giá trị gốc', () => {",
+                  "  pm.expect(d.name).to.eql(s.name);",
+                  "  pm.expect(d.representative_name).to.eql(s.representative_name);",
+                  "  pm.expect(d.staff_limit).to.eql(s.staff_limit);",
+                  "  pm.expect(toDate(d.contract_date)).to.eql(s.contract_date);",
+                  "});",
+                  "pm.test('type / status / CS / option_ids / feature_ids về giá trị gốc', () => {",
+                  "  pm.expect(d.type && d.type.value).to.eql(s.type);",
+                  "  pm.expect(d.status && d.status.value).to.eql(s.status);",
+                  "  pm.expect(d.customer_support ? d.customer_support.id : null).to.eql(s.customer_support_admin_id);",
+                  "  pm.expect(sorted(d.option_ids)).to.eql(sorted(s.option_ids));",
+                  "  pm.expect(sorted(d.feature_ids)).to.eql(sorted(s.feature_ids));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] },
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/admin/tenants/{{tenant_id}}", "host": ["{{base_url}}"], "path": ["api", "admin", "tenants", "{{tenant_id}}"] },
+            "description": "Rule area: Data (cleanup verify).\nNguồn: U01 + U10."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
